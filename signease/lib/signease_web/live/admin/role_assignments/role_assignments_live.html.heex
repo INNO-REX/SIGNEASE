@@ -1,0 +1,308 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Admin.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Admin.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-4 lg:p-6 xl:p-8">
+        <!-- Page Header -->
+        <div class="mb-6 lg:mb-8">
+          <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+            <span>Dashboard</span>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-gray-900 font-medium">Role Assignments</span>
+          </nav>
+          
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
+                Role Assignments
+              </h1>
+              <p class="text-base lg:text-lg text-gray-600 max-w-3xl">
+                Manage user role assignments and permissions across the platform. Assign roles to individual users or perform bulk operations.
+              </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2 lg:gap-3">
+              <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Export Data
+              </button>
+              <button class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Dashboard -->
+        <div class="sticky top-0 z-10 bg-gradient-to-br from-white/90 to-gray-50/90 pt-4 pb-4 -mx-4 px-4 lg:-mx-6 lg:px-6 xl:-mx-8 xl:px-8 border-b border-gray-200 backdrop-blur-sm">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Total Users</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.total_users %></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-green-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Active Roles</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.total_roles %></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Assigned Users</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= Enum.count(@users, &(&1.role_id != nil)) %></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Pending Approval</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.pending_approvals %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Assignment Section -->
+        <div class="mt-6 lg:mt-8 bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+          <div class="flex items-center mb-6">
+            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center shadow-sm">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+              </svg>
+            </div>
+            <h3 class="ml-3 text-lg font-semibold text-gray-900">Bulk Role Assignment</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Select Role</label>
+              <select id="bulk-role-select" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200">
+                <option value="">Choose a role...</option>
+                <%= for role <- @roles do %>
+                  <option value={role.id}><%= role.name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Select Users</label>
+              <select id="bulk-users-select" multiple class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200" size="6">
+                <%= for user <- @users do %>
+                  <option value={user.id}><%= user.first_name %> <%= user.last_name %> (<%= user.email %>)</option>
+                <% end %>
+              </select>
+              <p class="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select multiple users</p>
+            </div>
+            <div class="flex items-end">
+              <button id="bulk-assign-btn" class="w-full inline-flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 transform hover:scale-105">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Assign Role
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users List -->
+        <div class="mt-6 lg:mt-8 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">User Role Assignments</h3>
+                <p class="text-sm text-gray-600">Current role assignments for all users</p>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-500">Total: <%= length(@users) %></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="divide-y divide-gray-200">
+            <%= for user <- @users do %>
+              <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-200">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-sm">
+                        <span class="text-sm font-bold text-white">
+                          <%= String.first(user.first_name) %><%= String.first(user.last_name) %>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center space-x-2">
+                        <p class="text-sm font-semibold text-gray-900 truncate">
+                          <%= user.first_name %> <%= user.last_name %>
+                        </p>
+                        <% {status_class, status_text} = get_user_status_badge(user) %>
+                        <span class={["inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium", status_class]}>
+                          <%= status_text %>
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-500 truncate"><%= user.email %></p>
+                      <div class="flex items-center space-x-4 mt-1">
+                        <span class="text-xs text-gray-500">
+                          <span class="font-medium">Type:</span> <%= user.user_type %>
+                        </span>
+                        <span class="text-xs text-gray-500">
+                          <span class="font-medium">Role:</span> 
+                          <span class={if get_user_role_name(user) == "No Role Assigned", do: "text-orange-600", else: "text-indigo-600"}>
+                            <%= get_user_role_name(user) %>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button phx-click="show-assign-modal" phx-value-id={user.id}
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                      <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      Assign Role
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Role Modal -->
+  <%= if @show_assign_modal do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="assign-modal">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Assign Role</h3>
+            <button phx-click="hide-assign-modal" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="mb-4">
+            <p class="text-sm text-gray-600">
+              Assigning role to: <span class="font-medium"><%= @selected_user.first_name %> <%= @selected_user.last_name %></span>
+            </p>
+            <p class="text-sm text-gray-500"><%= @selected_user.email %></p>
+          </div>
+          
+          <.form for={@changeset} phx-submit="update-role-assignment" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Role</label>
+              <.input name="user[role_id]" value={@changeset.changes[:role_id] || @changeset.data.role_id} type="select" options={[{"No Role", ""}] ++ Enum.map(@roles, &{&1.name, &1.id})} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+              <%= if @changeset.errors[:role_id] do %>
+                <.error><%= elem(@changeset.errors[:role_id], 0) %></.error>
+              <% end %>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4">
+              <button type="button" phx-click="hide-assign-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+              </button>
+              <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Assign Role
+              </button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const bulkAssignBtn = document.getElementById('bulk-assign-btn');
+  const roleSelect = document.getElementById('bulk-role-select');
+  const usersSelect = document.getElementById('bulk-users-select');
+
+  bulkAssignBtn.addEventListener('click', function() {
+    const roleId = roleSelect.value;
+    const selectedUsers = Array.from(usersSelect.selectedOptions).map(option => option.value);
+
+    if (!roleId) {
+      alert('Please select a role');
+      return;
+    }
+
+    if (selectedUsers.length === 0) {
+      alert('Please select at least one user');
+      return;
+    }
+
+    // Send the bulk assignment request
+    const formData = new FormData();
+    formData.append('role_id', roleId);
+    selectedUsers.forEach(userId => {
+      formData.append('user_ids[]', userId);
+    });
+
+    // Use Phoenix LiveView to send the event
+    const liveSocket = window.liveSocket;
+    if (liveSocket) {
+      liveSocket.execJS(document, 'bulk-assign-role', {
+        role_id: roleId,
+        user_ids: selectedUsers
+      });
+    }
+
+    // Clear selections
+    roleSelect.value = '';
+    usersSelect.selectedIndex = -1;
+  });
+});
+</script> 

@@ -1,0 +1,362 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+  <!-- Top Navigation -->
+  <.live_component module={SigneaseWeb.Admin.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Admin.Components.SideNavComponent} id="side-nav" current_user={@current_user} current_page={@current_page} stats={@stats} />
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-4 lg:p-6 xl:p-8">
+      <!-- Hero Section -->
+      <div class="mb-6 lg:mb-8">
+        <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          <span>Dashboard</span>
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-gray-900 font-medium">Permissions</span>
+        </nav>
+        
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
+              Permissions Management
+            </h1>
+            <p class="text-base lg:text-lg text-gray-600 max-w-3xl">
+              Configure access rights and permissions for different user roles across the platform
+            </p>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-2 lg:gap-3">
+            <button class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              Save Changes
+            </button>
+            <button class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Export Config
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Dashboard -->
+      <div class="sticky top-0 z-10 bg-gradient-to-br from-white/90 to-gray-50/90 pt-4 pb-4 -mx-4 px-4 lg:-mx-6 lg:px-6 xl:-mx-8 xl:px-8 border-b border-gray-200 backdrop-blur-sm">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-lg flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Total Roles</p>
+                <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.total_roles %></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-green-100 rounded-lg flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Total Permissions</p>
+                <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.total_permissions %></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Active Permissions</p>
+                <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.active_permissions %></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 rounded-lg flex items-center justify-center shadow-sm">
+                <svg class="w-5 h-5 lg:w-6 lg:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Permission Groups</p>
+                <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.permission_groups %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role Selection and Bulk Actions -->
+      <div class="mt-6 lg:mt-8 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 lg:p-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Managing Permissions for: <span class="text-indigo-600 font-bold"><%= @selected_role.name %></span></h3>
+              <p class="text-sm text-gray-600 mt-1">Select a role to manage their permissions</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <%= for role <- @roles do %>
+                <button phx-click="switch-role" phx-value-role-id={role.id} class={"inline-flex items-center px-3 py-2 border text-sm font-medium rounded-lg transition-colors duration-200 #{if role.id == @selected_role.id, do: "border-indigo-500 text-indigo-700 bg-indigo-50", else: "border-gray-300 text-gray-700 bg-white hover:bg-gray-50"}"}>
+                  <div class="w-2 h-2 bg-indigo-600 rounded-full mr-2"></div>
+                  <%= role.name %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="border-t border-gray-200 pt-4">
+            <h4 class="text-md font-semibold text-gray-900 mb-3">Bulk Actions</h4>
+            <div class="flex flex-wrap gap-3">
+              <button phx-click="select-all-permissions" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Select All Permissions
+              </button>
+              <button phx-click="clear-all-permissions" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Clear All Permissions
+              </button>
+              <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Permissions Matrix -->
+      <div class="space-y-6 lg:space-y-8">
+        <!-- Backend Services -->
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="px-4 lg:px-6 py-4 lg:py-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Backend Services</h3>
+                  <p class="text-sm text-gray-600">Server-side operations and data management</p>
+                </div>
+              </div>
+              <button phx-click="select-all-backend" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                Select All Backend
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 lg:p-6">
+            <%= for module <- ["dashboard", "user_mgt", "role_mgt", "course_mgt", "speech_to_text", "sign_language", "accessibility", "qa_system", "analytics", "settings", "system_mgt"] do %>
+              <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                      <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={get_icon_path(get_permission_icon(module))}/>
+                      </svg>
+                    </div>
+                    <h4 class="font-medium text-gray-900"><%= get_module_display_name(module) %></h4>
+                  </div>
+                  <button phx-click="select-all-module" phx-value-module={module} phx-value-type="Backend Services" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Select All</button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                  <%= for action <- get_module_permissions(module) |> Map.keys() do %>
+                    <div class="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id={"backend-#{module}-#{action}"}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        checked={get_role_permission(@selected_role, "Backend Services", module, action)}
+                        phx-click="toggle-permission"
+                        phx-value-module={module}
+                        phx-value-action={action}
+                        phx-value-type="Backend Services"
+                      />
+                      <label for={"backend-#{module}-#{action}"} class="text-sm text-gray-700 font-medium">
+                        <%= get_action_display_name(action) %>
+                      </label>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Frontend Interface -->
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div class="px-4 lg:px-6 py-4 lg:py-5 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-4 h-4 lg:w-5 lg:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Frontend Interface</h3>
+                  <p class="text-sm text-gray-600">User interface and client-side operations</p>
+                </div>
+              </div>
+              <button phx-click="select-all-frontend" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                Select All Frontend
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4 lg:p-6">
+            <%= for module <- ["dashboard", "user_mgt", "role_mgt", "course_mgt", "speech_to_text", "sign_language", "accessibility", "qa_system", "analytics", "settings", "system_mgt"] do %>
+              <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+                      <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={get_icon_path(get_permission_icon(module))}/>
+                      </svg>
+                    </div>
+                    <h4 class="font-medium text-gray-900"><%= get_module_display_name(module) %></h4>
+                  </div>
+                  <button phx-click="select-all-module" phx-value-module={module} phx-value-type="Frontend Interface" class="text-xs text-green-600 hover:text-green-700 font-medium">Select All</button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                  <%= for action <- get_module_permissions(module) |> Map.keys() do %>
+                    <div class="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        id={"frontend-#{module}-#{action}"}
+                        class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                        checked={get_role_permission(@selected_role, "Frontend Interface", module, action)}
+                        phx-click="toggle-permission"
+                        phx-value-module={module}
+                        phx-value-action={action}
+                        phx-value-type="Frontend Interface"
+                      />
+                      <label for={"frontend-#{module}-#{action}"} class="text-sm text-gray-700 font-medium">
+                        <%= get_action_display_name(action) %>
+                      </label>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Panels -->
+      <div class="mt-6 lg:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shadow-sm">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="ml-3 text-lg font-semibold text-gray-900">Quick Actions</h3>
+          </div>
+          <div class="space-y-2.5">
+            <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              • Apply Super Admin Template
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              • Apply Admin Template
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              • Apply Instructor Template
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              • Apply Support Template
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+              • Apply Learner Template
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6">
+          <div class="flex items-center mb-4">
+            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center shadow-sm">
+              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+            </div>
+            <h3 class="ml-3 text-lg font-semibold text-gray-900">Legend & Help</h3>
+          </div>
+          <div class="space-y-3 text-sm text-gray-600 leading-relaxed">
+            <div class="flex items-start space-x-2">
+              <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p><strong>Backend Services:</strong> Server-side operations, data management, and API access</p>
+            </div>
+            <div class="flex items-start space-x-2">
+              <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p><strong>Frontend Interface:</strong> User interface elements and client-side functionality</p>
+            </div>
+            <div class="flex items-start space-x-2">
+              <svg class="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p><strong>Permission Types:</strong> View, Create, Edit, Delete, Configure, and more</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-6 lg:mt-8 bg-white rounded-xl border border-gray-200 p-5 lg:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="text-sm text-gray-600">
+            <p>Last updated: <%= DateTime.utc_now() |> Calendar.strftime("%B %d, %Y at %I:%M %p") %></p>
+            <p>Changes are automatically saved to the database</p>
+          </div>
+          <div class="flex gap-2 sm:gap-3">
+            <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+              Save All Changes
+            </button>
+            <button class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div> 

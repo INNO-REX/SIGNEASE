@@ -1,0 +1,208 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Admin.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Admin.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-6 lg:p-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900">Role Management</h1>
+              <p class="mt-2 text-gray-600">Create and manage user roles and their permissions</p>
+            </div>
+            <.live_component module={SigneaseWeb.Admin.Components.CreateRoleComponent} id="create-role" current_user={@current_user} create_role_callback={&Signease.Roles.create_user_role/1} parent_pid={self()} />
+          </div>
+        </div>
+
+        <!-- Roles List -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <ul class="divide-y divide-gray-200">
+            <%= for role <- @roles do %>
+              <li class="px-6 py-4 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="flex items-center">
+                        <p class="text-sm font-medium text-gray-900"><%= role.name %></p>
+                        <span class={[
+                          "ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                          role.status == "ACTIVE" && "bg-green-100 text-green-800",
+                          role.status == "INACTIVE" && "bg-red-100 text-red-800"
+                        ]}>
+                          <%= role.status %>
+                        </span>
+                      </div>
+                      <p class="text-sm text-gray-500">ID: <%= role.id %> • Created: <%= Calendar.strftime(role.inserted_at, "%B %d, %Y") %></p>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button phx-click="show-permissions-modal" phx-value-id={role.id}
+                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      Permissions
+                    </button>
+                    <button phx-click="show-edit-modal" phx-value-id={role.id}
+                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                      Edit
+                    </button>
+                    <button phx-click="show-delete-modal" phx-value-id={role.id}
+                            class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                      <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Edit Role Modal -->
+  <%= if @show_edit_modal do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="edit-modal">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Edit Role</h3>
+            <button phx-click="hide-edit-modal" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <.form for={@changeset} phx-submit="update-role" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Role Name</label>
+              <.input name="user_role[name]" value={@changeset.changes[:name] || @changeset.data.name} type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                                            <%= if @changeset.errors[:name] do %>
+                                <.error><%= elem(@changeset.errors[:name], 0) %></.error>
+                              <% end %>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Status</label>
+              <.input name="user_role[status]" value={@changeset.changes[:status] || @changeset.data.status} type="select" options={[{"Active", "ACTIVE"}, {"Inactive", "INACTIVE"}]} class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                                            <%= if @changeset.errors[:status] do %>
+                                <.error><%= elem(@changeset.errors[:status], 0) %></.error>
+                              <% end %>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-4">
+              <button type="button" phx-click="hide-edit-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+              </button>
+              <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Update Role
+              </button>
+            </div>
+          </.form>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Delete Role Modal -->
+  <%= if @show_delete_modal do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="delete-modal">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Delete Role</h3>
+            <button phx-click="hide-delete-modal" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="text-center">
+            <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Delete Role</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Are you sure you want to delete the role "<%= @selected_role.name %>"? This action cannot be undone.
+            </p>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button phx-click="hide-delete-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Cancel
+            </button>
+            <button phx-click="delete-role" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Permissions Modal -->
+  <%= if @show_permissions_modal do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="permissions-modal">
+      <div class="relative top-20 mx-auto p-5 border w-[700px] shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Permissions for <%= @selected_role.name %></h3>
+            <button phx-click="hide-permissions-modal" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <form phx-submit="update-permissions">
+            <%= for {type, modules} <- @permissions do %>
+              <h4 class="font-semibold mt-4 mb-2 text-indigo-700"><%= Atom.to_string(type) |> String.capitalize() %></h4>
+              <div class="grid grid-cols-2 gap-4">
+                <%= for {mod, actions} <- modules do %>
+                  <div class="border rounded p-2">
+                    <div class="font-medium text-gray-800 mb-1"><%= Atom.to_string(mod) %></div>
+                    <div class="flex flex-wrap gap-2">
+                      <%= for {action, value} <- actions do %>
+                        <label class="inline-flex items-center">
+                          <input type="checkbox" name={"permissions[#{type}][#{mod}][#{action}]"} value="true" checked={value} phx-click="toggle-permission" phx-value-type={type} phx-value-module={mod} phx-value-action={action} />
+                          <span class="ml-1 text-xs"><%= Atom.to_string(action) %></span>
+                        </label>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+            <div class="flex justify-end mt-4">
+              <button type="button" phx-click="hide-permissions-modal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mr-2">Cancel</button>
+              <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div> 

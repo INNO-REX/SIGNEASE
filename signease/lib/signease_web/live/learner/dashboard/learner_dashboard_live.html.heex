@@ -1,0 +1,400 @@
+
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Learner.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Learner.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-4 lg:p-6 xl:p-8">
+        <!-- Page Header -->
+        <div class="mb-6 lg:mb-8">
+          <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+            </svg>
+            <span>Home</span>
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-gray-900 font-medium">Accessibility Dashboard</span>
+          </nav>
+          
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 class="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-2">
+                Welcome back, <%= @current_user.first_name %>!
+              </h1>
+              <p class="text-base lg:text-lg text-gray-600 max-w-3xl">
+                Your inclusive learning journey continues. Access speech-to-text, chat with tutors and classmates, and choose sign language animations to enhance your experience.
+              </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-2 lg:gap-3">
+              <button phx-click="refresh-stats" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh Stats
+              </button>
+              <button phx-click="navigate-to-schedule" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 min-w-[140px]">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                View Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accessibility Statistics Dashboard -->
+        <div class="sticky top-0 z-10 bg-gradient-to-br from-white/90 to-gray-50/90 pt-4 pb-4 -mx-4 px-4 lg:-mx-6 lg:px-6 xl:-mx-8 xl:px-8 border-b border-gray-200 backdrop-blur-sm">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Speech Transcriptions</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.speech_transcriptions %></p>
+                  <p class="text-xs text-gray-500">Real-time text</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-green-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Chat Messages</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.chat_messages_sent %></p>
+                  <p class="text-xs text-gray-500">Text communication</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Sign Videos</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.sign_language_videos_watched %></p>
+                  <p class="text-xs text-gray-500">Animated translations</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 lg:p-6 border border-gray-200 shadow-sm">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 rounded-lg flex items-center justify-center shadow-sm">
+                  <svg class="w-5 h-5 lg:w-6 lg:h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <p class="text-xs lg:text-sm font-medium text-gray-600">Accessibility Used</p>
+                  <p class="text-xl lg:text-2xl font-bold text-gray-900"><%= @stats.accessibility_features_used %></p>
+                  <p class="text-xs text-gray-500">Features activated</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="mt-6 lg:mt-8 space-y-6 lg:space-y-8">
+          <!-- Row 1: Learning Progress & Upcoming Lessons -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <!-- Learning Progress -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Learning Progress</h3>
+                <button phx-click="navigate-to-progress" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                  View Details →
+                </button>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Beginner Course</span>
+                  <span class="text-sm font-semibold text-gray-900"><%= @learning_progress.beginner_course %>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-green-500 h-2 rounded-full" style={"width: #{@learning_progress.beginner_course}%"}>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Intermediate Course</span>
+                  <span class="text-sm font-semibold text-gray-900"><%= @learning_progress.intermediate_course %>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-500 h-2 rounded-full" style={"width: #{@learning_progress.intermediate_course}%"}>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Advanced Course</span>
+                  <span class="text-sm font-semibold text-gray-900"><%= @learning_progress.advanced_course %>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-purple-500 h-2 rounded-full" style={"width: #{@learning_progress.advanced_course}%"}>
+                  </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Conversation Practice</span>
+                  <span class="text-sm font-semibold text-gray-900"><%= @learning_progress.conversation_practice %>%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-orange-500 h-2 rounded-full" style={"width: #{@learning_progress.conversation_practice}%"}>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upcoming Accessible Sessions -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Upcoming Accessible Sessions</h3>
+                <span class="text-sm text-gray-500"><%= length(@upcoming_lessons) %> scheduled</span>
+              </div>
+              
+              <div class="space-y-4">
+                <%= for lesson <- @upcoming_lessons do %>
+                  <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                      <div class={[
+                        "w-10 h-10 rounded-lg flex items-center justify-center",
+                        lesson.type == "live_session" && "bg-red-100",
+                        lesson.type == "text_chat_session" && "bg-blue-100",
+                        lesson.type == "interactive_practice" && "bg-green-100",
+                        lesson.type == "tutorial" && "bg-purple-100"
+                      ]}>
+                        <svg class={[
+                          "w-5 h-5",
+                          lesson.type == "live_session" && "text-red-600",
+                          lesson.type == "text_chat_session" && "text-blue-600",
+                          lesson.type == "interactive_practice" && "text-green-600",
+                          lesson.type == "tutorial" && "text-purple-600"
+                        ]} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate"><%= lesson.title %></p>
+                      <p class="text-xs text-gray-500">with <%= lesson.instructor %> • <%= lesson.duration %> min • <%= lesson.participants %> participants</p>
+                      <p class="text-xs text-gray-400">
+                        <%= Calendar.strftime(lesson.scheduled_time, "%B %d at %I:%M %p") %>
+                      </p>
+                      <!-- Accessibility Features -->
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        <%= for feature <- lesson.features do %>
+                          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-indigo-100 text-indigo-800">
+                            <%= String.replace(feature, "_", " ") |> String.capitalize() %>
+                          </span>
+                        <% end %>
+                      </div>
+                    </div>
+                    <button phx-click="navigate-to-lesson" phx-value-lesson_id={lesson.id} class="text-indigo-600 hover:text-indigo-700">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Recent Activities & Recommended Content -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <!-- Recent Accessibility Activities -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-6">Recent Accessibility Activities</h3>
+              
+              <div class="space-y-4">
+                <%= for activity <- @recent_activities do %>
+                  <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                      <div class={[
+                        "w-8 h-8 rounded-full flex items-center justify-center",
+                        activity.type == "speech_transcribed" && "bg-blue-100",
+                        activity.type == "chat_message" && "bg-green-100",
+                        activity.type == "sign_video_watched" && "bg-purple-100",
+                        activity.type == "accessibility_used" && "bg-orange-100",
+                        activity.type == "lesson_completed" && "bg-indigo-100"
+                      ]}>
+                        <svg class={[
+                          "w-4 h-4",
+                          activity.type == "speech_transcribed" && "text-blue-600",
+                          activity.type == "chat_message" && "text-green-600",
+                          activity.type == "sign_video_watched" && "text-purple-600",
+                          activity.type == "accessibility_used" && "text-orange-600",
+                          activity.type == "lesson_completed" && "text-indigo-600"
+                        ]} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <%= case activity.type do %>
+                            <% "speech_transcribed" -> %>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                            <% "chat_message" -> %>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            <% "sign_video_watched" -> %>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            <% "accessibility_used" -> %>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                            <% _ -> %>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          <% end %>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900"><%= activity.title %></p>
+                      <p class="text-xs text-gray-500"><%= activity.description %></p>
+                      <p class="text-xs text-gray-400">
+                        <%= Calendar.strftime(activity.timestamp, "%B %d at %I:%M %p") %>
+                        <%= case activity.type do %>
+                          <% "speech_transcribed" -> %>
+                            • <%= activity.accuracy %>% accuracy • <%= activity.words_transcribed %> words
+                          <% "chat_message" -> %>
+                            • <%= activity.messages_sent %> sent • <%= activity.responses_received %> received
+                          <% "sign_video_watched" -> %>
+                            • <%= activity.video_duration %> min • <%= activity.signs_learned %> signs
+                          <% "accessibility_used" -> %>
+                            • <%= activity.session_duration %> min session
+                          <% "lesson_completed" -> %>
+                            • Score: <%= activity.score %>%
+                        <% end %>
+                      </p>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Accessibility Tools & Resources -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+              <h3 class="text-lg font-semibold text-gray-900 mb-6">Accessibility Tools & Resources</h3>
+              
+              <div class="space-y-4">
+                <%= for content <- @recommended_content do %>
+                  <div class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <h4 class="text-sm font-medium text-gray-900"><%= content.title %></h4>
+                        <p class="text-xs text-gray-600 mt-1"><%= content.description %></p>
+                        <div class="flex items-center space-x-4 mt-2">
+                          <span class={[
+                            "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                            content.difficulty == "beginner" && "bg-green-100 text-green-800",
+                            content.difficulty == "intermediate" && "bg-blue-100 text-blue-800",
+                            content.difficulty == "all_levels" && "bg-purple-100 text-purple-800"
+                          ]}>
+                            <%= String.capitalize(content.difficulty) %>
+                          </span>
+                          <span class="text-xs text-gray-500">
+                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <%= content.estimated_time %> min
+                          </span>
+                          <span class="text-xs text-gray-500">
+                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                            </svg>
+                            <%= content.accessibility_rating %>/5
+                          </span>
+                        </div>
+                        <!-- Accessibility Features -->
+                        <div class="flex flex-wrap gap-1 mt-2">
+                          <%= for feature <- content.features do %>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                              <%= String.replace(feature, "_", " ") |> String.capitalize() %>
+                            </span>
+                          <% end %>
+                        </div>
+                      </div>
+                      <button class="text-indigo-600 hover:text-indigo-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Accessibility Achievements -->
+          <div class="bg-white rounded-xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-semibold text-gray-900">Accessibility Achievements</h3>
+              <span class="text-sm text-gray-500"><%= length(@completed_lessons) %> completed</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <%= for lesson <- @completed_lessons do %>
+                <div class="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-sm font-medium text-gray-900 truncate"><%= lesson.title %></h4>
+                    <span class={[
+                      "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                      lesson.score >= 90 && "bg-green-100 text-green-800",
+                      lesson.score >= 80 && lesson.score < 90 && "bg-blue-100 text-blue-800",
+                      lesson.score < 80 && "bg-orange-100 text-orange-800"
+                    ]}>
+                      <%= lesson.score %>%
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                    <span>
+                      <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <%= lesson.time_spent %> min
+                    </span>
+                    <span>
+                      <%= Calendar.strftime(lesson.completed_at, "%b %d") %>
+                    </span>
+                  </div>
+                  <!-- Accessibility Features Used -->
+                  <div class="flex flex-wrap gap-1">
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-indigo-100 text-indigo-800">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                      </svg>
+                      Inclusive
+                    </span>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                      </svg>
+                      Text Chat
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,459 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Learner.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Learner.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={%{speech_transcriptions: @session_stats.words_transcribed, chat_messages_sent: @session_stats.questions_asked}} current_user={@current_user} />
+    
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col">
+      <!-- Header -->
+      <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Live Session Classroom</h1>
+            <p class="text-gray-600">Real-time speech transcription and accessibility tools</p>
+          </div>
+          
+          <!-- Session Status -->
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+              <div class={[
+                "w-3 h-3 rounded-full",
+                @session_active && "bg-green-500 animate-pulse",
+                !@session_active && "bg-gray-400"
+              ]}></div>
+              <span class="text-sm font-medium text-gray-700">
+                <%= if @session_active do %>
+                  Session Active
+                <% else %>
+                  Session Inactive
+                <% end %>
+              </span>
+            </div>
+            
+            <!-- Session Timer -->
+            <div class="bg-gray-100 px-3 py-1 rounded-lg">
+              <span class="text-sm font-mono text-gray-700">
+                <%= format_duration(@session_stats.session_duration) %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="flex-1 flex p-6 space-x-6">
+        <!-- Left Panel: Recording Controls -->
+        <div class="w-80 flex flex-col space-y-6">
+          <!-- Recording Control Card -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recording Controls</h3>
+            
+            <!-- Main Record Button -->
+            <div class="flex justify-center mb-6">
+              <button 
+                phx-click="toggle-recording"
+                class={[
+                  "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-offset-2",
+                  @is_recording && "bg-red-500 hover:bg-red-600 focus:ring-red-500 shadow-lg",
+                  !@is_recording && "bg-indigo-500 hover:bg-indigo-600 focus:ring-indigo-500 shadow-md"
+                ]}
+              >
+                <div class="absolute inset-0 rounded-full bg-white opacity-20 animate-ping"></div>
+                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <%= if @is_recording do %>
+                    <!-- Stop Icon -->
+                    <path d="M6 6h12v12H6z"/>
+                  <% else %>
+                    <!-- Play Icon -->
+                    <path d="M8 5v14l11-7z"/>
+                  <% end %>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Recording Status -->
+            <div class="text-center">
+              <p class="text-sm font-medium text-gray-700">
+                <%= if @is_recording do %>
+                  Recording in progress...
+                <% else %>
+                  Click to start recording
+                <% end %>
+              </p>
+            </div>
+          </div>
+
+          <!-- Session Statistics -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Stats</h3>
+            
+            <div class="space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Words Transcribed</span>
+                <span class="text-lg font-bold text-indigo-600"><%= @session_stats.words_transcribed %></span>
+              </div>
+              
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Accuracy</span>
+                <span class="text-lg font-bold text-green-600"><%= @session_stats.accuracy %>%</span>
+              </div>
+              
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Questions Asked</span>
+                <span class="text-lg font-bold text-purple-600"><%= @session_stats.questions_asked %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accessibility Settings -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Accessibility</h3>
+            
+            <div class="space-y-3">
+              <button 
+                phx-click="toggle-accessibility" 
+                phx-value-setting="high_contrast"
+                class={[
+                  "w-full flex items-center justify-between p-3 rounded-lg border transition-colors",
+                  @accessibility_settings.high_contrast && "bg-indigo-50 border-indigo-200",
+                  !@accessibility_settings.high_contrast && "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                ]}
+              >
+                <span class="text-sm font-medium text-gray-700">High Contrast</span>
+                <div class={[
+                  "w-5 h-5 rounded border-2",
+                  @accessibility_settings.high_contrast && "bg-indigo-500 border-indigo-500",
+                  !@accessibility_settings.high_contrast && "bg-white border-gray-300"
+                ]}>
+                  <%= if @accessibility_settings.high_contrast do %>
+                    <svg class="w-3 h-3 text-white mx-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  <% end %>
+                </div>
+              </button>
+
+              <button 
+                phx-click="toggle-accessibility" 
+                phx-value-setting="large_text"
+                class={[
+                  "w-full flex items-center justify-between p-3 rounded-lg border transition-colors",
+                  @accessibility_settings.large_text && "bg-indigo-50 border-indigo-200",
+                  !@accessibility_settings.large_text && "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                ]}
+              >
+                <span class="text-sm font-medium text-gray-700">Large Text</span>
+                <div class={[
+                  "w-5 h-5 rounded border-2",
+                  @accessibility_settings.large_text && "bg-indigo-500 border-indigo-500",
+                  !@accessibility_settings.large_text && "bg-white border-gray-300"
+                ]}>
+                  <%= if @accessibility_settings.large_text do %>
+                    <svg class="w-3 h-3 text-white mx-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  <% end %>
+                </div>
+              </button>
+
+              <button 
+                phx-click="toggle-accessibility" 
+                phx-value-setting="screen_reader"
+                class={[
+                  "w-full flex items-center justify-between p-3 rounded-lg border transition-colors",
+                  @accessibility_settings.screen_reader && "bg-indigo-50 border-indigo-200",
+                  !@accessibility_settings.screen_reader && "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                ]}
+              >
+                <span class="text-sm font-medium text-gray-700">Screen Reader</span>
+                <div class={[
+                  "w-5 h-5 rounded border-2",
+                  @accessibility_settings.screen_reader && "bg-indigo-500 border-indigo-500",
+                  !@accessibility_settings.screen_reader && "bg-white border-gray-300"
+                ]}>
+                  <%= if @accessibility_settings.screen_reader do %>
+                    <svg class="w-3 h-3 text-white mx-auto mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                  <% end %>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Panel: Transcription Window -->
+        <div class="flex-1 flex flex-col">
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 h-full flex flex-col">
+            <!-- Transcription Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 class="text-lg font-semibold text-gray-900">Live Transcription</h3>
+              
+              <div class="flex items-center space-x-3">
+                <!-- Animation Toggle -->
+                <button 
+                  phx-click="toggle-animation"
+                  class={[
+                    "flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors",
+                    @animation_enabled && "bg-purple-50 border-purple-200 text-purple-700",
+                    !@animation_enabled && "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                  ]}
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <span class="text-sm font-medium">
+                    <%= if @animation_enabled do %>
+                      Stop Animation
+                    <% else %>
+                      Start Animation
+                    <% end %>
+                  </span>
+                </button>
+
+                <!-- Clear Button -->
+                <button 
+                  phx-click="clear-transcription"
+                  class="flex items-center space-x-2 px-4 py-2 bg-red-50 border border-red-200 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                  <span class="text-sm font-medium">Clear</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Transcription Content -->
+            <div class="flex-1 p-6 overflow-hidden">
+              <!-- Current Transcription -->
+              <div class="mb-6">
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
+                  <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                      <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-sm font-medium text-indigo-700">Instructor</span>
+                        <span class="text-xs text-gray-500">Live</span>
+                        <%= if @is_recording do %>
+                          <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <% end %>
+                      </div>
+                      <p class={[
+                        "text-gray-900 leading-relaxed",
+                        @accessibility_settings.large_text && "text-lg",
+                        !@accessibility_settings.large_text && "text-base"
+                      ]}>
+                        <%= if @transcription_text != "" do %>
+                          <%= @transcription_text %>
+                        <% else %>
+                          <span class="text-gray-400 italic">Waiting for speech input...</span>
+                        <% end %>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transcription History -->
+              <div class="space-y-3 max-h-96 overflow-y-auto">
+                <%= for line <- @transcribed_lines do %>
+                  <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex items-start space-x-3">
+                      <div class="flex-shrink-0">
+                        <div class="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
+                          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                          <span class="text-xs font-medium text-gray-600"><%= line.speaker %></span>
+                          <span class="text-xs text-gray-400">
+                            <%= Calendar.strftime(line.timestamp, "%H:%M:%S") %>
+                          </span>
+                        </div>
+                        <p class={[
+                          "text-gray-800 leading-relaxed",
+                          @accessibility_settings.large_text && "text-base",
+                          !@accessibility_settings.large_text && "text-sm"
+                        ]}>
+                          <%= line.text %>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Quick Actions -->
+        <div class="w-64 flex flex-col space-y-6">
+          <!-- Quick Actions Card -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            
+            <div class="space-y-4">
+              <!-- Ask Class Question Button -->
+              <button 
+                phx-click="ask-class-question"
+                class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors transform hover:scale-105"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="font-medium">Ask Question</span>
+              </button>
+
+              <!-- Animation Button -->
+              <button 
+                phx-click="toggle-animation"
+                class={[
+                  "w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-colors transform hover:scale-105",
+                  @animation_enabled && "bg-purple-500 hover:bg-purple-600 text-white",
+                  !@animation_enabled && "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                ]}
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span class="font-medium">
+                  <%= if @animation_enabled do %>
+                    Stop Signs
+                  <% else %>
+                    Show Signs
+                  <% end %>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Recent Questions -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Questions</h3>
+            
+            <div class="space-y-3 max-h-64 overflow-y-auto">
+              <%= for question <- @class_questions do %>
+                <div class="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <div class="flex items-start space-x-2">
+                    <div class="flex-shrink-0">
+                      <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-800"><%= question.text %></p>
+                      <p class="text-xs text-gray-500 mt-1">
+                        <%= Calendar.strftime(question.timestamp, "%H:%M") %>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+              
+              <%= if @class_questions == [] do %>
+                <div class="text-center py-4">
+                  <p class="text-sm text-gray-500">No questions asked yet</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Session Info -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Info</h3>
+            
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Duration</span>
+                <span class="text-sm font-mono text-gray-900">
+                  <%= format_duration(@session_stats.session_duration) %>
+                </span>
+              </div>
+              
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Status</span>
+                <span class={[
+                  "text-sm font-medium px-2 py-1 rounded-full",
+                  @session_active && "bg-green-100 text-green-800",
+                  !@session_active && "bg-gray-100 text-gray-800"
+                ]}>
+                  <%= if @session_active do %>
+                    Active
+                  <% else %>
+                    Inactive
+                  <% end %>
+                </span>
+              </div>
+              
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Animation</span>
+                <span class={[
+                  "text-sm font-medium px-2 py-1 rounded-full",
+                  @animation_enabled && "bg-purple-100 text-purple-800",
+                  !@animation_enabled && "bg-gray-100 text-gray-800"
+                ]}>
+                  <%= if @animation_enabled do %>
+                    On
+                  <% else %>
+                    Off
+                  <% end %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for real-time transcription simulation -->
+<script>
+  window.addEventListener('phx:update', () => {
+    // Simulate real-time transcription updates
+    if (window.transcriptionInterval) {
+      clearInterval(window.transcriptionInterval);
+    }
+    
+    const isRecording = document.querySelector('[phx-click="toggle-recording"]')?.classList.contains('bg-red-500');
+    
+    if (isRecording) {
+      const sampleTexts = [
+        "Welcome to today's sign language lesson.",
+        "We'll be learning basic greetings today.",
+        "Let's start with the sign for 'hello'.",
+        "Make sure to follow along with the hand movements.",
+        "This is an important foundation for your learning journey.",
+        "Practice makes perfect, so don't be afraid to make mistakes.",
+        "Remember to maintain eye contact during conversations.",
+        "The facial expressions are just as important as the hand signs."
+      ];
+      
+      let currentIndex = 0;
+      
+      window.transcriptionInterval = setInterval(() => {
+        if (currentIndex < sampleTexts.length) {
+          window.liveSocket.execJS(document, "update-transcription", {text: sampleTexts[currentIndex]});
+          currentIndex++;
+        } else {
+          clearInterval(window.transcriptionInterval);
+        }
+      }, 3000);
+    }
+  });
+</script> 

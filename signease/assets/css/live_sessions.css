@@ -1,0 +1,295 @@
+/* Live Sessions Custom Styles */
+
+/* Recording Button Animations */
+.recording-active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Transcription Typing Effect */
+.transcription-typing {
+  border-right: 2px solid #3b82f6;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% {
+    border-color: transparent;
+  }
+  51%, 100% {
+    border-color: #3b82f6;
+  }
+}
+
+/* Accessibility Styles */
+.high-contrast {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast .bg-white {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.high-contrast .text-gray-900 {
+  color: #ffffff !important;
+}
+
+.high-contrast .text-gray-700 {
+  color: #ffffff !important;
+}
+
+.high-contrast .text-gray-600 {
+  color: #cccccc !important;
+}
+
+.large-text {
+  font-size: 1.2em !important;
+}
+
+.large-text .text-sm {
+  font-size: 1em !important;
+}
+
+.large-text .text-base {
+  font-size: 1.2em !important;
+}
+
+.large-text .text-lg {
+  font-size: 1.4em !important;
+}
+
+.large-text .text-xl {
+  font-size: 1.6em !important;
+}
+
+.large-text .text-2xl {
+  font-size: 1.8em !important;
+}
+
+/* Screen Reader Friendly */
+.screen-reader-friendly {
+  line-height: 1.6 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.screen-reader-friendly .text-sm {
+  line-height: 1.8 !important;
+}
+
+/* Sign Language Animation Container */
+.sign-animation-container {
+  transition: all 0.3s ease-in-out;
+  transform: translateY(0);
+}
+
+.sign-animation-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Session Status Indicators */
+.session-status-active {
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Transcription History Scrollbar */
+.transcription-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transcription-history::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.transcription-history::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.transcription-history::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Quick Action Buttons */
+.quick-action-button {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.quick-action-button:hover::before {
+  left: 100%;
+}
+
+/* Accessibility Focus Indicators */
+button:focus,
+a:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+/* High Contrast Focus */
+.high-contrast button:focus,
+.high-contrast a:focus,
+.high-contrast input:focus,
+.high-contrast textarea:focus {
+  outline: 2px solid #ffffff !important;
+  outline-offset: 2px !important;
+}
+
+/* Recording Button States */
+.recording-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recording-button:hover {
+  transform: scale(1.05);
+}
+
+.recording-button:active {
+  transform: scale(0.95);
+}
+
+/* Transcription Line Animations */
+.transcription-line {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Session Stats Counter Animation */
+.stat-counter {
+  animation: countUp 1s ease-out;
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+  .live-sessions-grid {
+    flex-direction: column;
+  }
+  
+  .live-sessions-grid > div {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .recording-button {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .sign-animation-container {
+    width: 100%;
+    height: 200px;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .recording-button,
+  .quick-action-button,
+  .sign-animation-container {
+    display: none !important;
+  }
+  
+  .transcription-history {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    background-color: #1f2937 !important;
+    color: #f9fafb !important;
+  }
+  
+  .dark-mode-auto .bg-white {
+    background-color: #374151 !important;
+    color: #f9fafb !important;
+    border-color: #4b5563 !important;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .recording-active {
+    animation: none !important;
+  }
+  
+  .session-status-active {
+    animation: none !important;
+  }
+} 

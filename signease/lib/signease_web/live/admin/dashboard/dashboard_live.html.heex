@@ -1,0 +1,116 @@
+<.loader id="dashboard-loader" />
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Admin.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Admin.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-6 lg:p-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900">
+                <%= case @current_user.user_role do %>
+                  <% "SUPER_ADMIN" -> %>
+                    Super Admin Dashboard
+                  <% "ADMIN" -> %>
+                    Admin Dashboard
+                  <% _ -> %>
+                    Admin Dashboard
+                <% end %>
+              </h1>
+              <p class="mt-2 text-gray-600">
+                <%= case @current_user.user_role do %>
+                  <% "SUPER_ADMIN" -> %>
+                    Monitor and manage the SignEase platform with full system access
+                  <% "ADMIN" -> %>
+                    Monitor and manage user accounts and platform activities
+                  <% _ -> %>
+                    Monitor and manage the SignEase platform
+                <% end %>
+              </p>
+              <div class="mt-2 flex items-center gap-2">
+                <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{case @current_user.user_role do
+                  "SUPER_ADMIN" -> "bg-purple-100 text-purple-800"
+                  "ADMIN" -> "bg-blue-100 text-blue-800"
+                  _ -> "bg-gray-100 text-gray-800"
+                end}"}>
+                  <%= case @current_user.user_role do %>
+                    <% "SUPER_ADMIN" -> %>
+                      Super Admin
+                    <% "ADMIN" -> %>
+                      Admin
+                    <% _ -> %>
+                      Admin
+                  <% end %>
+                </span>
+                <span class="text-sm text-gray-500">• <%= @current_user.email %></span>
+              </div>
+            </div>
+            
+            <button phx-click="refresh-stats" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white font-medium rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+              </svg>
+              Refresh Stats
+            </button>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="mb-8">
+          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="stats-cards" stats={@stats} />
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="space-y-8">
+          <!-- Row 1: Quick Actions & Recent Activities -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <.live_component module={SigneaseWeb.Admin.Components.QuickActionsComponent} id="quick-actions" current_user={@current_user} />
+            </div>
+            <div>
+              <.live_component module={SigneaseWeb.Admin.Components.RecentActivitiesComponent} id="recent-activities" activities={@stats.recent_activities} />
+            </div>
+          </div>
+
+          <!-- Row 2: Learning Distribution Chart -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <.live_component module={SigneaseWeb.Admin.Components.PieChartComponent} 
+                              id="learning-distribution" 
+                              chart_title="Learning Distribution" 
+                              chart_subtitle="Sign Language vs Speech-to-Text"
+                              pie_data={@stats.transaction_distribution} />
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div class="text-center">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platform Overview</h3>
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+                    <span class="text-sm font-medium text-blue-900">Total Sessions</span>
+                    <span class="text-lg font-bold text-blue-600">1,234</span>
+                  </div>
+                  <div class="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
+                    <span class="text-sm font-medium text-orange-900">Active Users</span>
+                    <span class="text-lg font-bold text-orange-600">567</span>
+                  </div>
+                  <div class="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+                    <span class="text-sm font-medium text-green-900">Completion Rate</span>
+                    <span class="text-lg font-bold text-green-600">89%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
