@@ -17,15 +17,11 @@ defmodule SigneaseWeb.Admin.Components.TopNavComponent do
 
           <div class="flex items-center space-x-4">
             <!-- Notifications -->
-            <button class="p-2 text-gray-400 hover:text-gray-600 transition-colors relative">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h6v-2H4v2zM4 11h6V9H4v2zM4 7h6V5H4v2zM10 7h10V5H10v2zM10 11h10V9H10v2zM10 15h10v-2H10v2zM10 19h10v-2H10v2z"></path>
-              </svg>
-              <!-- Notification badge -->
-              <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <.live_component
+              module={SigneaseWeb.Admin.Components.NotificationBellComponent}
+              id="notification-bell"
+              current_user={@current_user}
+            />
 
             <!-- User Dropdown -->
             <div class="relative group" x-data="{ open: false }">

@@ -367,6 +367,26 @@ defmodule Signease.Accounts do
   end
 
   @doc """
+  Approves a user by ID.
+
+  ## Examples
+
+      iex> approve_user(user_id, approver_id)
+      {:ok, %User{}}
+
+  """
+  def approve_user(user_id, approver_id) when is_binary(user_id) do
+    approve_user(user_id |> String.to_integer(), approver_id)
+  end
+
+  def approve_user(user_id, approver_id) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> approve_user(user, approver_id)
+    end
+  end
+
+  @doc """
   Approves a user.
 
   ## Examples
@@ -378,12 +398,32 @@ defmodule Signease.Accounts do
   def approve_user(%User{} = user, approver_id) do
     user
     |> User.status_changeset(%{
-      status: "ACTIVE",
+      status: "APPROVED",
       approved: true,
       approved_by: approver_id,
       approved_at: DateTime.utc_now()
     })
     |> Repo.update()
+  end
+
+  @doc """
+  Rejects a user by ID.
+
+  ## Examples
+
+      iex> reject_user(user_id, rejector_id, "Invalid information")
+      {:ok, %User{}}
+
+  """
+  def reject_user(user_id, rejector_id, reason) when is_binary(user_id) do
+    reject_user(user_id |> String.to_integer(), rejector_id, reason)
+  end
+
+  def reject_user(user_id, rejector_id, reason) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> reject_user(user, rejector_id, reason)
+    end
   end
 
   @doc """
@@ -435,6 +475,122 @@ defmodule Signease.Accounts do
     |> where([u], u.status == "PENDING_APPROVAL")
     |> select([u], count(u.id))
     |> Repo.one()
+  end
+
+  @doc """
+  Disables a user by ID.
+
+  ## Examples
+
+      iex> disable_user(user_id, disabler_id, "Violation of terms")
+      {:ok, %User{}}
+
+  """
+  def disable_user(user_id, disabler_id, reason) when is_binary(user_id) do
+    disable_user(user_id |> String.to_integer(), disabler_id, reason)
+  end
+
+  def disable_user(user_id, disabler_id, reason) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> disable_user(user, disabler_id, reason)
+    end
+  end
+
+  @doc """
+  Disables a user.
+
+  ## Examples
+
+      iex> disable_user(user, disabler_id, "Violation of terms")
+      {:ok, %User{}}
+
+  """
+  def disable_user(%User{} = user, disabler_id, reason) do
+    user
+    |> User.status_changeset(%{
+      disabled: true,
+      disabled_reason: reason,
+      updated_by: disabler_id
+    })
+    |> Repo.update()
+  end
+
+  @doc """
+  Enables a user by ID.
+
+  ## Examples
+
+      iex> enable_user(user_id, enabler_id)
+      {:ok, %User{}}
+
+  """
+  def enable_user(user_id, enabler_id) when is_binary(user_id) do
+    enable_user(user_id |> String.to_integer(), enabler_id)
+  end
+
+  def enable_user(user_id, enabler_id) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> enable_user(user, enabler_id)
+    end
+  end
+
+  @doc """
+  Enables a user.
+
+  ## Examples
+
+      iex> enable_user(user, enabler_id)
+      {:ok, %User{}}
+
+  """
+  def enable_user(%User{} = user, enabler_id) do
+    user
+    |> User.status_changeset(%{
+      disabled: false,
+      disabled_reason: nil,
+      updated_by: enabler_id
+    })
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a user by ID.
+
+  ## Examples
+
+      iex> delete_user(user_id, deleter_id)
+      {:ok, %User{}}
+
+  """
+  def delete_user(user_id, deleter_id) when is_binary(user_id) do
+    delete_user(user_id |> String.to_integer(), deleter_id)
+  end
+
+  def delete_user(user_id, deleter_id) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> delete_user(user, deleter_id)
+    end
+  end
+
+  @doc """
+  Deletes a user.
+
+  ## Examples
+
+      iex> delete_user(user, deleter_id)
+      {:ok, %User{}}
+
+  """
+  def delete_user(%User{} = user, deleter_id) do
+    user
+    |> User.status_changeset(%{
+      deleted_by: deleter_id,
+      deleted_at: DateTime.utc_now()
+    })
+    |> Repo.update()
   end
 
   # Private functions

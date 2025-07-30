@@ -72,10 +72,10 @@ defmodule SigneaseWeb.Router do
 
     # User Management
     # ---------------
-    live "/users", Users.UsersLive                            # All users management
-    live "/learners", Users.LearnersLive                      # Learner-specific management
-    live "/instructors", Users.InstructorsLive                # Instructor management
-    live "/admins", Users.AdminsLive                          # Admin user management
+    live "/users", Users.AllUsers.UsersLive                   # All users management
+    live "/learners", Users.Learners.LearnersLive             # Learner-specific management
+    live "/instructors", Users.Instructors.InstructorsLive    # Instructor management
+    live "/admins", Users.Admins.AdminsLive                   # Admin user management
     live "/user-import", Users.UserImportLive                 # Bulk user import
 
     # Role & Permission Management
@@ -105,6 +105,13 @@ defmodule SigneaseWeb.Router do
     live "/user-reports", Analytics.UserReportsLive           # User activity reports
     live "/system-reports", Analytics.SystemReportsLive       # System performance
     live "/export-data", Analytics.ExportDataLive             # Data export
+
+    # Notifications
+    # --------------
+    live "/notifications", Notifications.PushNotifications.Index                    # View all notifications
+    live "/notifications/manage", Notifications.Manage.Index                       # Manage notifications
+    live "/notifications/email-logs", Notifications.EmailLogs.Index               # Email notification logs
+    live "/notifications/sms-logs", Notifications.SmsLogs.Index                   # SMS notification logs
 
     # System Administration
     # ---------------------

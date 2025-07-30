@@ -1,0 +1,93 @@
+<div class="px-4 py-5 sm:p-6">
+  <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">
+    <%= @title %>
+  </h3>
+
+  <.simple_form
+    for={@changeset}
+    id="user-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <.input field={@changeset[:first_name]} type="text" label="First Name" required />
+      <.input field={@changeset[:last_name]} type="text" label="Last Name" required />
+      <.input field={@changeset[:email]} type="email" label="Email" required />
+      <.input field={@changeset[:username]} type="text" label="Username" required />
+      <.input field={@changeset[:phone]} type="text" label="Phone" />
+      
+      <.input
+        field={@changeset[:user_type]}
+        type="select"
+        label="User Type"
+        options={[
+          {"Learner", "LEARNER"},
+          {"Instructor", "INSTRUCTOR"},
+          {"Admin", "ADMIN"},
+          {"Support", "SUPPORT"}
+        ]}
+        required
+      />
+      
+      <.input
+        field={@changeset[:hearing_status]}
+        type="select"
+        label="Hearing Status"
+        options={[
+          {"Hearing", "HEARING"},
+          {"Deaf", "DEAF"},
+          {"Hard of Hearing", "HARD_OF_HEARING"}
+        ]}
+        required
+      />
+      
+      <.input
+        field={@changeset[:sign_language_skills]}
+        type="select"
+        label="Sign Language Skills"
+        options={[
+          {"Beginner", "BEGINNER"},
+          {"Intermediate", "INTERMEDIATE"},
+          {"Advanced", "ADVANCED"},
+          {"Fluent", "FLUENT"}
+        ]}
+        required
+      />
+      
+      <.input
+        field={@changeset[:preferred_language]}
+        type="select"
+        label="Preferred Language"
+        options={[
+          {"English", "en"},
+          {"Spanish", "es"},
+          {"French", "fr"},
+          {"German", "de"}
+        ]}
+        required
+      />
+      
+      <.input
+        field={@changeset[:status]}
+        type="select"
+        label="Status"
+        options={[
+          {"Pending Approval", "PENDING_APPROVAL"},
+          {"Active", "ACTIVE"},
+          {"Inactive", "INACTIVE"},
+          {"Approved", "APPROVED"},
+          {"Rejected", "REJECTED"},
+          {"Disabled", "DISABLED"}
+        ]}
+        required
+      />
+    </div>
+
+    <:actions>
+      <.button phx-disable-with="Saving...">
+        <%= if @action == :new, do: "Create User", else: "Update User" %>
+      </.button>
+    </:actions>
+  </.simple_form>
+</div> 

@@ -1,0 +1,104 @@
+<div class="px-4 py-5 sm:p-6">
+  <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">
+    <%= @title %>
+  </h3>
+
+  <div class="space-y-6">
+    <!-- User Avatar and Basic Info -->
+    <div class="flex items-center space-x-4">
+      <div class="flex-shrink-0 h-16 w-16">
+        <div class="h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+          <span class="text-xl font-medium text-white">
+            <%= String.first(@user.first_name) %><%= String.first(@user.last_name) %>
+          </span>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-lg font-medium text-gray-900">
+          <%= @user.first_name %> <%= @user.last_name %>
+        </h4>
+        <p class="text-sm text-gray-500"><%= @user.email %></p>
+        <p class="text-sm text-gray-500">@<%= @user.username %></p>
+      </div>
+    </div>
+
+    <!-- User Details Grid -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div>
+        <h5 class="text-sm font-medium text-gray-900 mb-2">User Information</h5>
+        <dl class="space-y-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">User Type</dt>
+            <dd class="text-sm text-gray-900"><%= format_user_type(@user.user_type) %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Status</dt>
+            <dd>
+              <span class={[
+                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                get_status_class(@user.status)
+              ]}>
+                <%= format_user_status(@user.status) %>
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Phone</dt>
+            <dd class="text-sm text-gray-900"><%= @user.phone || "N/A" %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div>
+        <h5 class="text-sm font-medium text-gray-900 mb-2">Accessibility Information</h5>
+        <dl class="space-y-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Hearing Status</dt>
+            <dd class="text-sm text-gray-900"><%= format_hearing_status(@user.hearing_status) %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Sign Language Skills</dt>
+            <dd class="text-sm text-gray-900"><%= format_sign_language_skills(@user.sign_language_skills) %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Preferred Language</dt>
+            <dd class="text-sm text-gray-900"><%= String.upcase(@user.preferred_language || "en") %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Account Information -->
+    <div>
+      <h5 class="text-sm font-medium text-gray-900 mb-2">Account Information</h5>
+      <dl class="space-y-2">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Account Created</dt>
+          <dd class="text-sm text-gray-900">
+            <%= Calendar.strftime(@user.inserted_at, "%B %d, %Y at %I:%M %p") %>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Last Updated</dt>
+          <dd class="text-sm text-gray-900">
+            <%= Calendar.strftime(@user.updated_at, "%B %d, %Y at %I:%M %p") %>
+          </dd>
+        </div>
+        <%= if @user.approved do %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Approved</dt>
+            <dd class="text-sm text-gray-900">
+              <%= Calendar.strftime(@user.approved_at, "%B %d, %Y at %I:%M %p") %>
+            </dd>
+          </div>
+        <% end %>
+        <%= if @user.disabled do %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Disabled Reason</dt>
+            <dd class="text-sm text-red-600"><%= @user.disabled_reason %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+</div> 

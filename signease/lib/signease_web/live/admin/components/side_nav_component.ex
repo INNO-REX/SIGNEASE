@@ -283,6 +283,61 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
               </div>
             </div>
 
+            <!-- Notifications Dropdown -->
+            <div class="space-y-1">
+              <button @click="activeDropdown = activeDropdown === 'notifications' ? null : 'notifications'"
+                      class="group flex items-center justify-between w-full px-2 py-2 text-xs font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                <div class="flex items-center min-w-0">
+                  <svg class="mr-2 flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM10.5 3.75a6 6 0 00-6 6v3.75a6 6 0 006 6h3a6 6 0 006-6V9.75a6 6 0 00-6-6h-3z"></path>
+                  </svg>
+                  <span class="truncate">Notifications</span>
+                </div>
+                <svg class="w-4 h-4 transition-transform duration-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              <div x-show="activeDropdown === 'notifications'"
+                   x-transition:enter="transition ease-out duration-500"
+                   x-transition:enter-start="opacity-0 transform -translate-y-2"
+                   x-transition:enter-end="opacity-100 transform translate-y-0"
+                   x-transition:leave="transition ease-in duration-300"
+                   x-transition:leave-start="opacity-100 transform translate-y-0"
+                   x-transition:leave-end="opacity-0 transform -translate-y-2"
+                   class="ml-4 space-y-1 overflow-hidden" style="display: none;">
+                <button @click="handleButtonClick('notifications')" phx-click="navigate-to-notifications" phx-target={@myself}
+                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM10.5 3.75a6 6 0 00-6 6v3.75a6 6 0 006 6h3a6 6 0 006-6V9.75a6 6 0 00-6-6h-3z"></path>
+                  </svg>
+                  View Notifications
+                </button>
+                <button @click="handleButtonClick('notifications')" phx-click="navigate-to-manage-notifications" phx-target={@myself}
+                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  Manage Notifications
+                </button>
+                <button @click="handleButtonClick('notifications')" phx-click="navigate-to-email-logs" phx-target={@myself}
+                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  Email Logs
+                </button>
+                <button @click="handleButtonClick('notifications')" phx-click="navigate-to-sms-logs" phx-target={@myself}
+                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  SMS Logs
+                </button>
+              </div>
+            </div>
+
             <!-- Analytics & Reports Dropdown -->
             <div class="space-y-1">
               <button @click="activeDropdown = activeDropdown === 'analytics-reports' ? null : 'analytics-reports'"
@@ -417,25 +472,42 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
     {:noreply, push_navigate(socket, to: "/admin/dashboard")}
   end
 
-  # User Management Events (Not yet implemented)
+  # User Management Events
   def handle_event("navigate-to-all-users", _params, socket) do
-    {:noreply, put_flash(socket, :info, "User Management - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/users")}
   end
 
   def handle_event("navigate-to-learners", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Learner Management - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/learners")}
   end
 
   def handle_event("navigate-to-instructors", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Instructor Management - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/instructors")}
   end
 
   def handle_event("navigate-to-admins", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Admin Management - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/admins")}
   end
 
   def handle_event("navigate-to-user-import", _params, socket) do
     {:noreply, put_flash(socket, :info, "User Import - Coming Soon! This feature is currently under development.")}
+  end
+
+  # Notifications Events
+  def handle_event("navigate-to-notifications", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/notifications")}
+  end
+
+  def handle_event("navigate-to-manage-notifications", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/notifications/manage")}
+  end
+
+  def handle_event("navigate-to-email-logs", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/notifications/email-logs")}
+  end
+
+  def handle_event("navigate-to-sms-logs", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/notifications/sms-logs")}
   end
 
   # Learning Management Events (Not yet implemented)
