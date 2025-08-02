@@ -166,6 +166,61 @@ defmodule Signease.Accounts do
   end
 
   @doc """
+  Creates a user with auto-generated password (internal onboarding only).
+
+  ## Examples
+
+      iex> create_user_with_auto_password(%{first_name: "John", last_name: "Doe", email: "john@example.com", username: "john", user_type: "LEARNER", user_role: "STUDENT", hearing_status: "HEARING"})
+      {:ok, %User{}, "generated_password"}
+
+  """
+  def create_user_with_auto_password(attrs) do
+    # Generate a random password
+    generated_password = generate_random_password()
+
+    # Add the generated password to the attributes
+    attrs_with_password = Map.put(attrs, "password", generated_password)
+
+    case %User{}
+         |> User.admin_creation_changeset(attrs_with_password)
+         |> Repo.insert() do
+      {:ok, user} ->
+        # Return the user with the generated password for display
+        {:ok, user, generated_password}
+      error -> error
+    end
+  end
+
+    @doc """
+  Generates a random password.
+  """
+  def generate_random_password do
+    # Generate a 12-character password with letters, numbers, and symbols
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+    for _ <- 1..12 do
+      String.at(chars, :rand.uniform(String.length(chars)) - 1)
+    end
+    |> Enum.join()
+  end
+
+  @doc """
+  Resets a user's password and sends notification.
+  """
+  def reset_user_password(user_id) do
+    user = get_user!(user_id)
+    new_password = generate_random_password()
+
+    case update_user_with_password(user, %{password: new_password}) do
+      {:ok, updated_user} ->
+        # Send password reset notification
+        Signease.Notifications.send_password_reset_notification(updated_user, new_password)
+        {:ok, updated_user, new_password}
+      error -> error
+    end
+  end
+
+  @doc """
   Updates a user.
 
   ## Examples

@@ -12,7 +12,8 @@ defmodule Signease.Notifications do
   Returns the list of notifications.
   """
   def list_notifications do
-    Repo.all(Notification)
+    import Ecto.Query
+    Repo.all(from n in Notification, order_by: [desc: n.inserted_at])
   end
 
   @doc """
@@ -205,12 +206,165 @@ defmodule Signease.Notifications do
     |> Repo.all()
   end
 
+  # =============================================================================
+  # PASSWORD MANAGEMENT NOTIFICATIONS
+  # =============================================================================
+
+  @doc """
+  Sends password creation notification via SMS and Email.
+  """
+  def send_password_creation_notification(user, generated_password) do
+    # Create notification record
+    notification_params = %{
+      title: "Welcome to SignEase - Your Account Details",
+      message: "Your SignEase account has been created successfully. Username: #{user.username}, Password: #{generated_password}. Please change your password after first login.",
+      notification_type: "SECURITY_ALERT",
+      priority: "HIGH",
+      status: "ACTIVE",
+      target_audience: "LEARNER",
+      delivery_channels: "sms,email",
+      created_by_id: 1, # System admin
+      metadata: Jason.encode!(%{user_id: user.id, username: user.username})
+    }
+
+    case create_notification(notification_params) do
+      {:ok, notification} ->
+        IO.puts("✅ Notification created with ID: #{notification.id}")
+        # Send SMS notification
+        send_password_sms(user, generated_password, notification)
+        # Send Email notification
+        send_password_email(user, generated_password, notification)
+        {:ok, notification}
+      {:error, changeset} ->
+        IO.puts("❌ Notification creation error: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Sends password reset notification via SMS and Email.
+  """
+  def send_password_reset_notification(user, new_password) do
+    # Create notification record
+    notification_params = %{
+      title: "SignEase - Password Reset",
+      message: "Your password has been reset. New password: #{new_password}. Please change your password after login.",
+      notification_type: "SECURITY_ALERT",
+      priority: "HIGH",
+      status: "ACTIVE",
+      target_audience: "LEARNER",
+      delivery_channels: "sms,email",
+      created_by_id: 1, # System admin
+      metadata: Jason.encode!(%{user_id: user.id, username: user.username})
+    }
+
+    case create_notification(notification_params) do
+      {:ok, notification} ->
+        IO.puts("✅ Password reset notification created with ID: #{notification.id}")
+        # Send SMS notification
+        send_password_sms(user, new_password, notification)
+        # Send Email notification
+        send_password_email(user, new_password, notification)
+        {:ok, notification}
+      {:error, changeset} ->
+        IO.puts("❌ Password reset notification creation error: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
+  end
+
+  defp send_password_sms(user, password, notification) do
+    # Only send SMS if user has a phone number
+    if user.phone && user.phone != "" do
+      sms_params = %{
+        type: "PASSWORD_NOTIFICATION",
+        mobile: user.phone,
+        msg: "SignEase: Your account details - Username: #{user.username}, Password: #{password}. Please change password after login.",
+        status: "READY",
+        msg_count: "1",
+        attempts: 0,
+        notification_id: notification.id
+      }
+
+      case %Sms{} |> Sms.changeset(sms_params) |> Repo.insert() do
+        {:ok, sms} ->
+          # In a real implementation, you would integrate with an SMS service here
+          # For now, we'll just mark it as sent
+          update_sms_status(sms, "SENT")
+          {:ok, sms}
+        {:error, changeset} ->
+          IO.puts("❌ SMS creation error: #{inspect(changeset.errors)}")
+          {:error, changeset}
+      end
+    else
+      IO.puts("⚠️  Skipping SMS notification - no phone number for user #{user.username}")
+      {:ok, nil}
+    end
+  end
+
+  defp send_password_email(user, password, notification) do
+    # Only send email if user has an email address
+    if user.email && user.email != "" do
+      email_params = %{
+        subject: "SignEase - Your Account Details",
+        sender_email: "noreply@signease.com",
+        sender_name: "SignEase System",
+        mail_body: """
+        Dear #{user.first_name} #{user.last_name},
+
+        Your SignEase account has been created successfully.
+
+        Account Details:
+        - Username: #{user.username}
+        - Password: #{password}
+
+        Please login to your account and change your password for security.
+
+        Best regards,
+        SignEase Team
+        """,
+        recipient_email: user.email,
+        status: "READY",
+        attempts: "0",
+        notification_id: notification.id
+      }
+
+      case %Email{} |> Email.changeset(email_params) |> Repo.insert() do
+        {:ok, email} ->
+          # In a real implementation, you would integrate with an email service here
+          # For now, we'll just mark it as sent
+          update_email_status(email, "SENT")
+          {:ok, email}
+        {:error, changeset} ->
+          IO.puts("❌ Email creation error: #{inspect(changeset.errors)}")
+          {:error, changeset}
+      end
+    else
+      IO.puts("⚠️  Skipping email notification - no email for user #{user.username}")
+      {:ok, nil}
+    end
+  end
+
+  @doc """
+  Updates SMS status.
+  """
+  def update_sms_status(%Sms{} = sms, status) do
+    sms |> Sms.changeset(%{status: status, date_sent: NaiveDateTime.utc_now()}) |> Repo.update()
+  end
+
+  @doc """
+  Updates Email status.
+  """
+  def update_email_status(%Email{} = email, status) do
+    email |> Email.changeset(%{status: status}) |> Repo.update()
+  end
+
   # SMS Functions
   @doc """
   Returns the list of sms notifications.
   """
   def list_sms_notifications do
-    Repo.all(Sms)
+    import Ecto.Query
+    Repo.all(from s in Sms, order_by: [desc: s.inserted_at])
   end
 
   @doc """
@@ -232,12 +386,20 @@ defmodule Signease.Notifications do
     sms |> Sms.changeset(attrs) |> Repo.update()
   end
 
+  @doc """
+  Deletes a sms notification.
+  """
+  def delete_sms_notification(%Sms{} = sms) do
+    Repo.delete(sms)
+  end
+
   # Email Functions
   @doc """
   Returns the list of email notifications.
   """
   def list_email_notifications do
-    Repo.all(Email)
+    import Ecto.Query
+    Repo.all(from e in Email, order_by: [desc: e.inserted_at])
   end
 
   @doc """
@@ -257,5 +419,12 @@ defmodule Signease.Notifications do
   """
   def update_email_notification(%Email{} = email, attrs) do
     email |> Email.changeset(attrs) |> Repo.update()
+  end
+
+  @doc """
+  Deletes an email notification.
+  """
+  def delete_email_notification(%Email{} = email) do
+    Repo.delete(email)
   end
 end

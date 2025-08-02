@@ -37,12 +37,12 @@
                 Refresh
               </button>
               
-              <.link navigate={~p"/admin/learners/new"} class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+              <button phx-click="show_create_modal" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 Add Learner
-              </.link>
+              </button>
             </div>
           </div>
         </div>
@@ -147,74 +147,68 @@
                     <h3 class="mt-2 text-sm font-medium text-gray-900">No learners found</h3>
                     <p class="mt-1 text-sm text-gray-500">Get started by creating a new learner account.</p>
                     <div class="mt-6">
-                      <.link navigate={~p"/admin/learners/new"} class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                      <button phx-click="show_create_modal" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                         Add Learner
-                      </.link>
+                      </button>
                     </div>
                   </div>
                 <% else %>
                   <.table id="learners-table" rows={@learners} class="min-w-full divide-y divide-gray-200">
-                    <:col :let={learner} label="Name" class="px-6 py-4 whitespace-nowrap">
+                    <:col :let={learner} label="Name" class="px-4 py-3 whitespace-nowrap">
                       <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-green-600 flex items-center justify-center">
-                            <span class="text-sm font-medium text-white">
+                        <div class="flex-shrink-0 h-8 w-8">
+                          <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-green-600 flex items-center justify-center">
+                            <span class="text-xs font-medium text-white">
                               <%= String.first(learner.first_name) %><%= String.first(learner.last_name) %>
                             </span>
                           </div>
                         </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
+                        <div class="ml-3">
+                          <div class="text-xs font-medium text-gray-900">
                             <%= learner.first_name %> <%= learner.last_name %>
-                          </div>
-                          <div class="text-sm text-gray-500">
-                            <%= learner.email %>
                           </div>
                         </div>
                       </div>
                     </:col>
                     
-                    <:col :let={learner} label="Status" class="px-6 py-4 whitespace-nowrap">
+                    <:col :let={learner} label="Email" class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
+                      <%= learner.email %>
+                    </:col>
+                    
+                    <:col :let={learner} label="Status" class="px-4 py-3 whitespace-nowrap">
                       <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                         get_status_class(learner.status)
                       ]}>
                         <%= format_user_status(learner.status) %>
                       </span>
                     </:col>
                     
-                    <:col :let={learner} label="Hearing Status" class="px-6 py-4 whitespace-nowrap">
+                    <:col :let={learner} label="Hearing Status" class="px-4 py-3 whitespace-nowrap">
                       <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                         get_hearing_status_class(learner.hearing_status)
                       ]}>
                         <%= format_hearing_status(learner.hearing_status) %>
                       </span>
                     </:col>
                     
-                    <:col :let={learner} label="Sign Language Skills" class="px-6 py-4 whitespace-nowrap">
-                      <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_skills_class(learner.sign_language_skills)
-                      ]}>
-                        <%= format_sign_language_skills(learner.sign_language_skills) %>
-                      </span>
-                    </:col>
+
                     
-                    <:col :let={learner} label="Phone" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <:col :let={learner} label="Phone" class="px-4 py-3 whitespace-nowrap text-xs text-gray-900">
                       <%= learner.phone || "N/A" %>
                     </:col>
                     
-                    <:col :let={learner} label="Created" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <:col :let={learner} label="Created" class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
                       <%= Calendar.strftime(learner.inserted_at, "%Y-%m-%d") %>
                     </:col>
                     
-                    <:action :let={learner} class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <:action :let={learner} class="px-4 py-3 whitespace-nowrap text-right text-xs font-medium">
                       <.dropdown id={"dropdown-#{learner.id}"} label="Actions">
-                        <.link patch={~p"/admin/learners/#{learner.id}"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <.link patch={~p"/admin/learners/#{learner.id}"} class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100">
                           <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -222,22 +216,31 @@
                           View Details
                         </.link>
 
-                        <.link patch={~p"/admin/learners/#{learner.id}/edit"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <.link patch={~p"/admin/learners/#{learner.id}/edit"} class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100">
                           <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                           </svg>
                           Edit
                         </.link>
 
-                        <.link navigate={~p"/learner/dashboard?user_id=#{learner.id}"} class="block px-4 py-2 text-sm text-blue-700 hover:bg-blue-50">
+                        <.link navigate={~p"/learner/dashboard?user_id=#{learner.id}"} class="block px-3 py-1.5 text-xs text-blue-700 hover:bg-blue-50">
                           <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                           </svg>
                           View Progress
                         </.link>
 
+                        <.link class="block px-3 py-1.5 text-xs text-orange-700 hover:bg-orange-50" 
+                          phx-click="reset_password"
+                          phx-value-id={learner.id}>
+                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                          </svg>
+                          Reset Password
+                        </.link>
+
                         <%= if learner.status == "PENDING_APPROVAL" do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
+                          <.link class="block px-3 py-1.5 text-xs text-green-700 hover:bg-green-50" 
                             phx-click="approve"
                             phx-value-id={learner.id}>
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +249,7 @@
                             Approve
                           </.link>
                           
-                          <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
+                          <.link class="block px-3 py-1.5 text-xs text-red-700 hover:bg-red-50" 
                             phx-click="reject"
                             phx-value-id={learner.id}>
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,8 +259,8 @@
                           </.link>
                         <% end %>
 
-                        <%= if learner.user_status == "ACTIVE" and learner.status == "APPROVED" do %>
-                          <.link class="block px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50" 
+                        <%= if learner.status == "ACTIVE" do %>
+                          <.link class="block px-3 py-1.5 text-xs text-yellow-700 hover:bg-yellow-50" 
                             phx-click="disable"
                             phx-value-id={learner.id}>
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,8 +270,8 @@
                           </.link>
                         <% end %>
 
-                        <%= if learner.disabled do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
+                        <%= if learner.status == "DISABLED" do %>
+                          <.link class="block px-3 py-1.5 text-xs text-green-700 hover:bg-green-50" 
                             phx-click="enable"
                             phx-value-id={learner.id}>
                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,7 +281,7 @@
                           </.link>
                         <% end %>
 
-                        <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
+                        <.link class="block px-3 py-1.5 text-xs text-red-700 hover:bg-red-50" 
                           phx-click="delete"
                           phx-value-id={learner.id}>
                           <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,38 +312,13 @@
   </div>
 </div>
 
-<!-- Learner Details Modal -->
-<.modal :if={@live_action == :show} id="learner-show-modal" show on_cancel={JS.patch(~p"/admin/learners")}>
+<!-- Learner Form Modal -->
+<%= if @show_modal do %>
   <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserShowComponent}
-    id={@user.id}
-    title={@page_title}
-    action={@live_action}
-    user={@user}
-    patch={~p"/admin/learners"}
+    module={SigneaseWeb.Admin.Users.Components.LearnerFormComponent}
+    id={if @action == :new, do: "new", else: @learner.id}
+    action={@action}
+    learner={@learner}
+    parent_pid={self()}
   />
-</.modal>
-
-<!-- Learner Edit Modal -->
-<.modal :if={@live_action == :edit} id="learner-edit-modal" show on_cancel={JS.patch(~p"/admin/learners")}>
-  <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
-    id={@user.id}
-    title={@page_title}
-    action={@live_action}
-    user={@user}
-    patch={~p"/admin/learners"}
-  />
-</.modal>
-
-<!-- Learner New Modal -->
-<.modal :if={@live_action == :new} id="learner-new-modal" show on_cancel={JS.patch(~p"/admin/learners")}>
-  <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
-    id={:new}
-    title={@page_title}
-    action={@live_action}
-    user={@user}
-    patch={~p"/admin/learners"}
-  />
-</.modal> 
+<% end %> 

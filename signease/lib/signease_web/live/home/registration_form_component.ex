@@ -359,20 +359,26 @@ defmodule SigneaseWeb.Home.RegistrationFormComponent do
         # Hide loader immediately after successful authentication
         socket = push_event(socket, "hide-loader", %{id: "auth-loader"})
 
-        # Redirect users to appropriate dashboard based on their user type
-        case user.user_type do
-          "ADMIN" ->
-            # For admin users, redirect to admin dashboard with user info in URL params
-            {:noreply, push_navigate(socket, to: "/admin/dashboard?user_id=#{user.id}")}
-          "INSTRUCTOR" ->
-            # For instructor users, redirect to lecturer dashboard
-            {:noreply, push_navigate(socket, to: "/lecturer/dashboard?user_id=#{user.id}")}
-          "LEARNER" ->
-            # For learner users, redirect to learner dashboard
-            {:noreply, push_navigate(socket, to: "/learner/dashboard?user_id=#{user.id}")}
-          _ ->
-            # For other user types (SUPPORT, etc.), redirect to home page
-            {:noreply, push_navigate(socket, to: "/")}
+        # Check if user has auto-generated password and needs to change it
+        if user.auto_pwd == "Y" do
+          # Redirect to force password change with user ID as parameter
+          {:noreply, push_navigate(socket, to: "/force-password-change?user_id=#{user.id}")}
+        else
+          # Redirect users to appropriate dashboard based on their user type
+          case user.user_type do
+            "ADMIN" ->
+              # For admin users, redirect to admin dashboard with user info in URL params
+              {:noreply, push_navigate(socket, to: "/admin/dashboard?user_id=#{user.id}")}
+            "INSTRUCTOR" ->
+              # For instructor users, redirect to lecturer dashboard
+              {:noreply, push_navigate(socket, to: "/lecturer/dashboard?user_id=#{user.id}")}
+            "LEARNER" ->
+              # For learner users, redirect to learner dashboard
+              {:noreply, push_navigate(socket, to: "/learner/dashboard?user_id=#{user.id}")}
+            _ ->
+              # For other user types (SUPPORT, etc.), redirect to home page
+              {:noreply, push_navigate(socket, to: "/")}
+          end
         end
 
       {:error, reason} ->

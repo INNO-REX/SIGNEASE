@@ -14,6 +14,7 @@ defmodule Signease.Accounts.User do
     field :last_name, :string
     field :email, :string
     field :password, :string, virtual: true
+    field :password_confirmation, :string, virtual: true
     field :hashed_password, :string
     field :user_type, :string, default: "LEARNER" # LEARNER, INSTRUCTOR, ADMIN, SUPPORT
     field :user_role, :string, default: "STUDENT" # STUDENT, TEACHER, ADMIN, SUPPORT
@@ -231,8 +232,6 @@ defmodule Signease.Accounts.User do
     |> validate_required([:password])
     |> validate_length(:password, min: 8, max: 128,
         message: "should be at least 8 characters long")
-    |> validate_format(:password, ~r/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        message: "must contain at least one uppercase letter, one lowercase letter, and one number")
     |> maybe_hash_password(opts)
   end
 

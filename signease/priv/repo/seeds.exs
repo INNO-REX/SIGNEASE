@@ -3,3 +3,4 @@
 #     mix run priv/repo/seeds.exs
 
 Signease.Seeds.SetUser.run()
+Signease.Seeds.SetTestNotifications.run()

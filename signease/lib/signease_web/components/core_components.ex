@@ -586,15 +586,15 @@ defmodule SigneaseWeb.CoreComponents do
 
   def dropdown(assigns) do
     ~H"""
-    <div class="relative inline-block text-left" x-data="{ open: false }">
+    <div class="relative inline-block text-left" x-data="{ open: false, dropdownStyle: '' }" x-init="open = false">
       <button
-        @click="open = !open"
+        @click="open = !open; if(open) { const rect = $el.getBoundingClientRect(); dropdownStyle = 'left: ' + (rect.left + rect.width - 128) + 'px; top: ' + (rect.bottom + 4) + 'px;' }"
         @click.away="open = false"
         type="button"
-        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        class="inline-flex items-center px-4 py-2 bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
       >
         <%= @label %>
-        <svg class="-mr-0.5 ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="ml-2 h-4 w-4 transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
       </button>
@@ -607,7 +607,9 @@ defmodule SigneaseWeb.CoreComponents do
         x-transition:leave="transition ease-in duration-75"
         x-transition:leave-start="transform opacity-100 scale-100"
         x-transition:leave-end="transform opacity-0 scale-95"
-        class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="fixed z-[99999] w-32 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 border border-gray-200"
+        x-bind:style="dropdownStyle"
+        style="display: none;"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="menu-button"

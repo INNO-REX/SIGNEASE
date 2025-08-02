@@ -16,7 +16,9 @@ defmodule SigneaseWeb.Admin.Notifications.EmailLogs.Index do
       page_title: "Email Logs",
       current_path: "/admin/notifications/email-logs",
       current_page: "notifications",
-      stats: get_notification_stats()
+      stats: get_notification_stats(),
+      selected_email: nil,
+      show_email_modal: false
     )}
   end
 
@@ -46,6 +48,38 @@ defmodule SigneaseWeb.Admin.Notifications.EmailLogs.Index do
       end
     else
       {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("view_email", %{"id" => id}, socket) do
+    email_notification = Enum.find(socket.assigns.email_notifications, &(&1.id == String.to_integer(id)))
+    {:noreply, assign(socket, selected_email: email_notification, show_email_modal: true)}
+  end
+
+  @impl true
+  def handle_event("close_email_modal", _params, socket) do
+    {:noreply, assign(socket, show_email_modal: false, selected_email: nil)}
+  end
+
+  @impl true
+  def handle_event("delete_email", %{"id" => id}, socket) do
+    email_notification = Enum.find(socket.assigns.email_notifications, &(&1.id == String.to_integer(id)))
+    if email_notification do
+      case Notifications.delete_email_notification(email_notification) do
+        {:ok, _deleted_email} ->
+          # Refresh the list after deletion
+          email_notifications = try do
+            Notifications.list_email_notifications()
+          rescue
+            _ -> socket.assigns.email_notifications
+          end
+          {:noreply, assign(socket, email_notifications: email_notifications) |> put_flash(:info, "Email notification deleted successfully!")}
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, "Failed to delete email notification")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Email notification not found")}
     end
   end
 

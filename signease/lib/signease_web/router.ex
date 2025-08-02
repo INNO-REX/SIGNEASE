@@ -54,6 +54,9 @@ defmodule SigneaseWeb.Router do
     # Home page and public access
     live "/", Home.HomeLive
 
+    # Force password change for users with default passwords
+    live "/force-password-change", MainSettingsLive.ForcePasswordChangeLive
+
     # Authentication routes (handled by HomeLive component)
     # Note: Login/logout functionality is embedded in the home page
     # No separate routes needed as it's handled via LiveView events

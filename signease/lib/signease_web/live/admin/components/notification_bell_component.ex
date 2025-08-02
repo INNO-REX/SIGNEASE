@@ -235,7 +235,15 @@ defmodule SigneaseWeb.Admin.Components.NotificationBellComponent do
 
   defp format_time_ago(datetime) do
     now = DateTime.utc_now()
-    diff = DateTime.diff(now, datetime, :second)
+
+    # Convert NaiveDateTime to DateTime if needed
+    datetime_with_zone = case datetime do
+      %DateTime{} -> datetime
+      %NaiveDateTime{} -> DateTime.from_naive!(datetime, "Etc/UTC")
+      _ -> datetime
+    end
+
+    diff = DateTime.diff(now, datetime_with_zone, :second)
 
     cond do
       diff < 60 -> "Just now"
