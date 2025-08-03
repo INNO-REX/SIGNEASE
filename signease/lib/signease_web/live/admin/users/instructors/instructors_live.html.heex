@@ -11,41 +11,16 @@
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <div class="p-6 lg:p-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 class="text-3xl font-bold text-gray-900">
-                <%= @title %>
-              </h1>
-              <p class="mt-2 text-gray-600">
-                <%= @description %>
-              </p>
-              <div class="mt-2 flex items-center gap-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  Admin Panel
-                </span>
-                <span class="text-sm text-gray-500">• Instructor Management</span>
-              </div>
-            </div>
-            
-            <div class="flex space-x-3">
-              <button phx-click="reload" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Refresh
-              </button>
-              
-              <.link navigate={~p"/admin/instructors/new"} class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                Add Instructor
-              </.link>
-            </div>
-          </div>
-        </div>
+        <!-- Header Component -->
+        <.live_component
+          module={SigneaseWeb.Components.SimpleHeaderComponent}
+          id="header-section"
+          title={@title}
+          description={@description}
+          message={nil}
+          actions={nil}
+          stats={@stats}
+        />
 
         <!-- Statistics Cards -->
         <div class="mb-8">
@@ -55,25 +30,19 @@
         <!-- Main Content Panel -->
         <div id="panel-1" class="bg-white shadow-md rounded-lg text-xs">
           <div class="p-6">
-            <div class="grid md:flex justify-between items-center px-4 mb-6">
-              <div class="flex items-center space-x-4">
-                <h2 class="text-lg font-semibold text-gray-900">Teaching Staff</h2>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  <%= length(@instructors) %> instructors
-                </span>
-              </div>
-              
+            <div class="grid md:flex justify-between items-center px-4">
+              <.live_component
+                module={SigneaseWeb.Components.ISearchComponent} 
+                id="ISearchComponent"
+                params={@params}
+              />
               <div class="flex space-x-4">
-                <!-- Export Dropdown -->
                 <div x-data="{ open: false }" class="relative">
                   <button
                     @click="open = !open"
                     @click.away="open = false"
-                    class="inline-flex items-center px-4 py-2 bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    class="inline-flex items-center px-4 py-2  bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
                     Export
                   </button>
                   
@@ -93,9 +62,6 @@
                         phx-click="export_pdf"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                        </svg>
                         Export as PDF
                       </button>
                       
@@ -103,9 +69,6 @@
                         phx-click="export_excel"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
                         Export as Excel
                       </button>
                       
@@ -113,176 +76,148 @@
                         phx-click="export_csv"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
                         Export as CSV
                       </button>
                     </div>
                   </div>
                 </div>
+                
+                <button
+                  class="inline-flex px-4 py-2  bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  phx-click="open_filter"
+                >
+                  <i class="fas fa-filter w-5 h-4 mr-2"></i> Filter
+                </button>
+
+                <button
+                  class="inline-flex px-4 py-2  bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  phx-click="reload"
+                >
+                  <i class="fas fa-sync-alt w-5 h-4 mr-2"></i> Reload
+                </button>
               </div>
             </div>
             
             <div class="mt-6 my-overflow-div">
-              <%= if @data_loader do %>
-                <div class="flex justify-center items-center py-8">
-                  <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-purple-600"></div>
-                  <span class="ml-2 text-gray-500">Loading instructors...</span>
-                </div>
-              <% else %>
-                <%= if Enum.empty?(@instructors) do %>
-                  <div class="text-center py-8">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No instructors found</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by creating a new instructor account.</p>
-                    <div class="mt-6">
-                      <.link navigate={~p"/admin/instructors/new"} class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Add Instructor
-                      </.link>
+              <input type="hidden" name="_csrf_token" id="csrf" value={Plug.CSRFProtection.get_csrf_token()} />
+                <.table id="tbl_instructors" rows={@data}>
+                <:col :let={instructor} label="Name">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-8 w-8">
+                      <div class="h-8 w-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
+                        <span class="text-xs font-medium text-white">
+                          <%= String.first(instructor.first_name) %><%= String.first(instructor.last_name) %>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">
+                        <%= instructor.first_name %> <%= instructor.last_name %>
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        <%= instructor.username %>
+                      </div>
                     </div>
                   </div>
-                <% else %>
-                  <.table id="instructors-table" rows={@instructors} class="min-w-full divide-y divide-gray-200">
-                    <:col :let={instructor} label="Name" class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
-                            <span class="text-sm font-medium text-white">
-                              <%= String.first(instructor.first_name) %><%= String.first(instructor.last_name) %>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            <%= instructor.first_name %> <%= instructor.last_name %>
-                          </div>
-                          <div class="text-sm text-gray-500">
-                            <%= instructor.email %>
-                          </div>
-                        </div>
-                      </div>
-                    </:col>
-                    
-                    <:col :let={instructor} label="Status" class="px-6 py-4 whitespace-nowrap">
-                      <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_status_class(instructor.status)
-                      ]}>
-                        <%= format_user_status(instructor.status) %>
-                      </span>
-                    </:col>
-                    
-                    <:col :let={instructor} label="Hearing Status" class="px-6 py-4 whitespace-nowrap">
-                      <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_hearing_status_class(instructor.hearing_status)
-                      ]}>
-                        <%= format_hearing_status(instructor.hearing_status) %>
-                      </span>
-                    </:col>
-                    
-                    <:col :let={instructor} label="Sign Language Skills" class="px-6 py-4 whitespace-nowrap">
-                      <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_skills_class(instructor.sign_language_skills)
-                      ]}>
-                        <%= format_sign_language_skills(instructor.sign_language_skills) %>
-                      </span>
-                    </:col>
-                    
-                    <:col :let={instructor} label="Phone" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= instructor.phone || "N/A" %>
-                    </:col>
-                    
-                    <:col :let={instructor} label="Created" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <%= Calendar.strftime(instructor.inserted_at, "%Y-%m-%d") %>
-                    </:col>
-                    
-                    <:action :let={instructor} class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <.dropdown id={"dropdown-#{instructor.id}"} label="Actions">
-                        <.link patch={~p"/admin/instructors/#{instructor.id}"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                          </svg>
-                          View Details
-                        </.link>
+                </:col>
+                
+                <:col :let={instructor} label="Email"><%= instructor.email %></:col>
+                <:col :let={instructor} label="Phone"><%= instructor.phone || "N/A" %></:col>
+                <:col :let={instructor} label="Type">Instructor</:col>
+               
+                <:col :let={instructor} label="Status"> 
+                  <span class={[
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium",
+                    Util.status_class(instructor.status)
+                  ]}>
+                    <%= Util.status_display_name(instructor.status) %>
+                  </span>  
+                </:col>
+                <:col :let={instructor} label="Approval Status"> 
+                  <span class={[
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium",
+                    Util.status_class(instructor.status)
+                  ]}>
+                    <%= Util.status_display_name(instructor.status) %>
+                  </span>  
+                </:col>
+              
+                <:action :let={instructor}>
+                  <.dropdown id={"dropdown-#{instructor.id}"} label="Options">
+                      
+                    <.link patch={~p"/admin/instructors/#{instructor.id}"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <i class="fas fa-eye mr-2"></i> View Details
+                    </.link>
 
-                        <.link patch={~p"/admin/instructors/#{instructor.id}/edit"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                          </svg>
-                          Edit
-                        </.link>
+                    <.link patch={~p"/admin/instructors/#{instructor.id}/edit"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <i class="fas fa-edit mr-2"></i> Edit
+                      </.link>
 
-                        <.link navigate={~p"/lecturer/dashboard?user_id=#{instructor.id}"} class="block px-4 py-2 text-sm text-purple-700 hover:bg-purple-50">
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                          </svg>
-                          View Teaching Dashboard
-                        </.link>
+                    <.link class="block px-4 py-2 text-sm text-blue-700 hover:bg-blue-50" 
+                      phx-click="reset_password"
+                      phx-value-id={instructor.id}>
+                      <i class="fas fa-key mr-2"></i> Reset Password
+                    </.link>
 
-                        <%= if instructor.status == "PENDING_APPROVAL" do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
-                            phx-click="approve"
-                            phx-value-id={instructor.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Approve
-                          </.link>
-                          
-                          <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
-                            phx-click="reject"
-                            phx-value-id={instructor.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Reject
-                          </.link>
-                        <% end %>
+                      <%= if instructor.status == "PENDING_APPROVAL" do %>
+                      <.link class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                        phx-click="approve"
+                        phx-value-id={instructor.id}>
+                        <i class="fas fa-check mr-2"></i> Approve
+                      </.link>
+                    <% end %>
 
-                        <%= if instructor.user_status == "ACTIVE" and instructor.status == "APPROVED" do %>
-                          <.link class="block px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50" 
-                            phx-click="disable"
-                            phx-value-id={instructor.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
-                            </svg>
-                            Disable
-                          </.link>
-                        <% end %>
+                      <%= if instructor.status == "PENDING_APPROVAL" do %>
+                      <.link class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                        phx-click="reject"
+                        phx-value-id={instructor.id}>
+                        <i class="fas fa-times mr-2"></i> Reject
+                      </.link>
+                    <% end %>
 
-                        <%= if instructor.disabled do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
-                            phx-click="enable"
-                            phx-value-id={instructor.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Enable
-                          </.link>
-                        <% end %>
+                      <%= if instructor.user_status == "ACTIVE" and instructor.status == "APPROVED" do %>
+                      <.link class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                        phx-click="disable"
+                        phx-value-id={instructor.id}>
+                        <i class="fas fa-ban mr-2"></i> Disable
+                      </.link>
+                    <% end %>
 
-                        <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
-                          phx-click="delete"
-                          phx-value-id={instructor.id}>
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                          Delete
-                        </.link>
-                      </.dropdown>
-                    </:action>
-                  </.table>
+                      <%= if instructor.disabled do %>
+                      <.link class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
+                        phx-click="enable"
+                        phx-value-id={instructor.id}>
+                        <i class="fas fa-check mr-2"></i> Enable
+                      </.link>
+                    <% end %>
+
+                     <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
+                        phx-click="delete"
+                        phx-value-id={instructor.id}>
+                        <i class="fas fa-trash mr-2"></i> Delete
+                      </.link>
+
+                  </.dropdown>
+                </:action>
+                </.table>
+              
+              <%= if @data_loader do %>
+                <div class="flex justify-center items-center py-4">
+                  <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-green-600"></div>
+                  <span class="ml-2 text-gray-500">Loading...</span>
+                </div>
+              <% else %>
+                <%= if Enum.empty?(@data) do %>
+                  <div class="text-center py-4 text-gray-500">No data available in table</div>
                 <% end %>
               <% end %>
+              
+              <.live_component
+                module={SigneaseWeb.Components.PaginationComponent}
+                id="PaginationComponent"
+                params={@params}
+                pagination_data={@pagination}
+              />
             </div>
           </div>
         </div>
@@ -306,7 +241,7 @@
 <!-- Instructor Edit Modal -->
 <.modal :if={@live_action == :edit} id="instructor-edit-modal" show on_cancel={JS.patch(~p"/admin/instructors")}>
   <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
+    module={SigneaseWeb.Admin.Users.Components.InstructorFormComponent}
     id={@user.id}
     title={@page_title}
     action={@live_action}
@@ -318,11 +253,23 @@
 <!-- Instructor New Modal -->
 <.modal :if={@live_action == :new} id="instructor-new-modal" show on_cancel={JS.patch(~p"/admin/instructors")}>
   <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
+    module={SigneaseWeb.Admin.Users.Components.InstructorFormComponent}
     id={:new}
     title={@page_title}
     action={@live_action}
     user={@user}
+    patch={~p"/admin/instructors"}
+  />
+</.modal>
+
+<!-- Filter Modal -->
+<.modal :if={@live_action == :filter} id="filter-modal" show on_cancel={JS.patch(~p"/admin/instructors")}>
+  <.live_component
+    module={SigneaseWeb.Admin.Users.Components.FilterComponent}
+    id={:filters}
+    title={@page_title}
+    action={@live_action}
+    filter_params={@filter_params}
     patch={~p"/admin/instructors"}
   />
 </.modal> 

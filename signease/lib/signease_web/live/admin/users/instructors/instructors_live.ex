@@ -5,7 +5,7 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
   alias Signease.Repo
   alias Signease.Accounts
   alias Signease.Accounts.User
-  alias Signease.Roles
+  alias SigneaseWeb.Helpers.Utils, as: Util
   import SigneaseWeb.Components.LoaderComponent
 
   @url "/admin/instructors"
@@ -81,6 +81,13 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     |> assign(:user, Accounts.get_user!(id))
   end
 
+  defp apply_action(socket, :filter, _params) do
+    socket
+    |> assign(:page_title, "Filter Instructors")
+    |> assign(:filter_params, %{})
+    |> assign(:filter_modal, true)
+  end
+
   # =============================================================================
   # EVENT HANDLERS
   # =============================================================================
@@ -92,7 +99,11 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
       "delete" -> handle_delete_event(params, socket)
+      "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
+      "open_filter" -> open_filter_modal(socket)
+      "filter" -> fetch_instructors(socket, params)
+      "iSearch" -> fetch_instructors(socket, params)
       "export_pdf" -> handle_export_pdf(socket, params)
       "export_csv" -> handle_export_csv(socket, params)
       "export_excel" -> handle_export_excel(socket, params)
@@ -197,32 +208,85 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     end
   end
 
+  defp handle_reset_password_event(%{"id" => id}, socket) do
+    case Accounts.reset_user_password(id) do
+      {:ok, _user} ->
+        send(self(), {:fetch_instructors, %{"sort_direction" => "desc", "sort_field" => "id"}})
+        {:noreply,
+         socket
+         |> put_flash(:info, "Password reset successfully. New password sent via SMS and email.")}
+
+      {:error, reason} ->
+        send(self(), {:fetch_instructors, %{"sort_direction" => "desc", "sort_field" => "id"}})
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to reset password: #{reason}")}
+    end
+  end
+
+  defp open_filter_modal(socket) do
+    {:noreply, push_patch(socket, to: ~p"/admin/instructors/filter")}
+  end
+
   # =============================================================================
-  # DATA FETCHING
+  # DATA FETCHING & PAGINATION
   # =============================================================================
 
   defp fetch_instructors(socket, params) do
-    instructors = get_instructors_with_pagination(params)
+    data = get_instructors_with_filters(params)
+    pagination = Util.generate_pagination_details(data)
     stats = get_instructor_stats()
 
     {:noreply,
-     assign(socket, :instructors, instructors)
+     assign(socket, :data, data)
+     |> assign(:pagination, pagination)
      |> assign(:stats, stats)
-     |> assign(:data_loader, false)}
+     |> assign(:data_loader, false)
+     |> assign(:filter_modal, false)
+     |> assign(:params, params)}
   end
 
-  defp get_instructors_with_pagination(params) do
-    page = String.to_integer(params["page"] || "1")
-    per_page = String.to_integer(params["per_page"] || "20")
-    offset = (page - 1) * per_page
+  defp get_instructors_with_filters(params) do
+    search = Map.get(params, "search", "")
+    status = Map.get(params, "status", "")
+    hearing_status = Map.get(params, "hearing_status", "")
+    gender = Map.get(params, "gender", "")
 
     User
     |> preload([:role])
     |> where([u], u.user_type == "INSTRUCTOR")
+    |> filter_by_search(search)
+    |> filter_by_status(status)
+    |> filter_by_hearing_status(hearing_status)
+    |> filter_by_gender(gender)
     |> order_by([u], [desc: u.inserted_at])
-    |> limit(^per_page)
-    |> offset(^offset)
     |> Repo.all()
+  end
+
+  defp filter_by_search(query, ""), do: query
+  defp filter_by_search(query, search) do
+    search_term = "%#{search}%"
+    from(u in query,
+      where: ilike(u.first_name, ^search_term) or
+             ilike(u.last_name, ^search_term) or
+             ilike(u.email, ^search_term) or
+             ilike(u.username, ^search_term)
+    )
+  end
+
+  defp filter_by_status(query, ""), do: query
+  defp filter_by_status(query, status) do
+    from(u in query, where: u.status == ^status)
+  end
+
+  defp filter_by_hearing_status(query, ""), do: query
+  defp filter_by_hearing_status(query, hearing_status) do
+    from(u in query, where: u.hearing_status == ^hearing_status)
+  end
+
+  defp filter_by_gender(query, ""), do: query
+  defp filter_by_gender(query, gender) do
+    from(u in query, where: u.gender == ^gender)
   end
 
   defp handle_reload(socket) do
@@ -252,13 +316,11 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
   defp assign_initial_state(socket) do
     socket
     |> assign(:current_path, @url)
-    |> assign(:instructors, [])
+    |> assign(:data, [])
     |> assign(:data_loader, true)
     |> assign(:filter_modal, false)
-    |> assign(:error_modal, false)
-    |> assign(:success_modal, false)
-    |> assign(:error_message, "")
-    |> assign(:success_message, "")
+    |> assign(:filter_params, %{})
+    |> assign(:pagination, nil)
     |> assign(:stats, get_instructor_stats())
   end
 

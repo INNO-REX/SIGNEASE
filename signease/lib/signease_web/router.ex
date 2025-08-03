@@ -78,6 +78,10 @@ defmodule SigneaseWeb.Router do
     live "/users", Users.AllUsers.UsersLive                   # All users management
     live "/learners", Users.Learners.LearnersLive             # Learner-specific management
     live "/instructors", Users.Instructors.InstructorsLive    # Instructor management
+    live "/instructors/new", Users.Instructors.InstructorsLive, :new
+    live "/instructors/filter", Users.Instructors.InstructorsLive, :filter
+    live "/instructors/:id", Users.Instructors.InstructorsLive, :show
+    live "/instructors/:id/edit", Users.Instructors.InstructorsLive, :edit
     live "/admins", Users.Admins.AdminsLive                   # Admin user management
     live "/user-import", Users.UserImportLive                 # Bulk user import
 

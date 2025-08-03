@@ -6,7 +6,8 @@ defmodule Signease.Accounts.User do
     user_status auto_pwd id_type id_no phone maker_id updated_by login_id
     approved disabled disabled_reason blocked branch_code branch_id username profile_picture
     last_pwd_update role_id hearing_status learning_preferences accessibility_needs
-    preferred_language sign_language_skills inserted_at updated_at approved_by approved_at
+    preferred_language sign_language_skills gender date_of_birth education_level years_experience
+    subjects_expertise inserted_at updated_at approved_by approved_at
     rejected_by rejected_at rejection_reason deleted_by deleted_at)a
 
   schema "users" do
@@ -43,6 +44,13 @@ defmodule Signease.Accounts.User do
     field :accessibility_needs, :map, default: %{}
     field :preferred_language, :string, default: "en"
     field :sign_language_skills, :string, default: "BEGINNER" # BEGINNER, INTERMEDIATE, ADVANCED, FLUENT
+
+    # Instructor specific fields
+    field :gender, :string # male, female, other, prefer_not_to_say
+    field :date_of_birth, :date
+    field :education_level, :string # high_school, associate_degree, bachelors, masters, doctorate, other
+    field :years_experience, :integer
+    field :subjects_expertise, :string
 
     # Approval tracking
     belongs_to :approver, Signease.Accounts.User,
