@@ -7,18 +7,34 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
 
   @impl true
   def update(%{id: id} = assigns, socket) do
-    user = if id == "new", do: %User{}, else: Accounts.get_user!(id)
-    changeset = Accounts.User.changeset(user, %{})
+    if id == :new do
+      # Create a changeset without validation to avoid showing errors initially
+      changeset = %User{}
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_change(:user_type, "LEARNER")
+      |> Ecto.Changeset.put_change(:user_role, "STUDENT")
+      |> Ecto.Changeset.put_change(:status, "ACTIVE")
+      |> Ecto.Changeset.put_change(:user_status, "ACTIVE")
+      |> Ecto.Changeset.put_change(:approved, true)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:user, user)
-     |> assign(:changeset, changeset)
-     |> assign(:page_title, if(id == "new", do: "New Learner", else: "Edit Learner"))}
+      {:ok,
+       socket
+       |> assign(assigns)
+       |> assign(:user, %User{})
+       |> assign(:changeset, changeset)
+       |> assign(:page_title, "New Learner")}
+    else
+      user = Accounts.get_user!(id)
+      changeset = Accounts.change_user(user)
+
+      {:ok,
+       socket
+       |> assign(assigns)
+       |> assign(:user, user)
+       |> assign(:changeset, changeset)
+       |> assign(:page_title, "Edit Learner")}
+    end
   end
-
-
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
@@ -27,7 +43,7 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
 
   @impl true
   def handle_event("close", _params, socket) do
-    send(socket.assigns.parent_pid, {__MODULE__, :close_modal})
+    notify_parent(:close_modal)
     {:noreply, socket}
   end
 

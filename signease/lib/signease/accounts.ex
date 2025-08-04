@@ -28,6 +28,21 @@ defmodule Signease.Accounts do
   end
 
   @doc """
+  Returns the list of users by their IDs.
+
+  ## Examples
+
+      iex> list_users_by_ids([1, 2, 3])
+      [%User{}, ...]
+
+  """
+  def list_users_by_ids(ids) when is_list(ids) do
+    User
+    |> where([u], u.id in ^ids)
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single user by ID.
 
   Raises `Ecto.NoResultsError` if the User does not exist.

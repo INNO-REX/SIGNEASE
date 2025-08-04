@@ -33,11 +33,19 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
 
   @impl true
   def handle_params(params, _url, socket) do
-    if connected?(socket), do: send(self(), {:fetch_instructors, params})
+    # If we have existing params with filters and the new params are empty, preserve the filters
+    current_params = Map.get(socket.assigns, :params, %{})
+    new_params = if map_size(params) == 0 and map_size(current_params) > 0 do
+      current_params
+    else
+      params
+    end
+
+    if connected?(socket), do: send(self(), {:fetch_instructors, new_params})
 
     {:noreply,
      socket
-     |> assign(:params, params)
+     |> assign(:params, new_params)
      |> apply_action(socket.assigns.live_action, params)}
   end
 
@@ -101,12 +109,16 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
       "delete" -> handle_delete_event(params, socket)
       "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
+      "show_create_modal" -> handle_show_create_modal(socket)
       "open_filter" -> open_filter_modal(socket)
-      "filter" -> fetch_instructors(socket, params)
+      "filter" -> handle_filter_event(params, socket)
       "iSearch" -> fetch_instructors(socket, params)
       "export_pdf" -> handle_export_pdf(socket, params)
       "export_csv" -> handle_export_csv(socket, params)
       "export_excel" -> handle_export_excel(socket, params)
+      "change_page" -> handle_change_page(params, socket)
+      "change_per_page" -> handle_change_per_page(params, socket)
+      "sort" -> handle_sort_event(params, socket)
       _ -> {:noreply, socket}
     end
   end
@@ -118,6 +130,22 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
 
       {:fetch_instructors, params} ->
         fetch_instructors(socket, params)
+
+      {:fetch_data, params} ->
+        fetch_instructors(socket, params)
+
+      {SigneaseWeb.Admin.Users.Components.InstructorFormComponent, {:saved, _user}} ->
+        # Refresh the instructors list after saving
+        send(self(), {:fetch_instructors, socket.assigns.params})
+        {:noreply,
+         socket
+         |> put_flash(:info, "Instructor saved successfully.")}
+
+      {SigneaseWeb.Admin.Users.Components.InstructorFormComponent, :close_modal} ->
+        {:noreply, push_patch(socket, to: ~p"/admin/instructors")}
+
+      :close_modal ->
+        {:noreply, push_patch(socket, to: ~p"/admin/instructors")}
 
       _ ->
         {:noreply, socket}
@@ -228,14 +256,44 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     {:noreply, push_patch(socket, to: ~p"/admin/instructors/filter")}
   end
 
+  defp handle_show_create_modal(socket) do
+    {:noreply, push_patch(socket, to: ~p"/admin/instructors/new")}
+  end
+
+  # =============================================================================
+  # FILTER & PAGINATION HANDLERS
+  # =============================================================================
+
+  defp handle_filter_event(%{"filter" => filter_params}, socket) do
+    current_params = socket.assigns.params
+    new_params = Map.merge(current_params, filter_params)
+
+    {:noreply,
+     socket
+     |> assign(:params, new_params)
+     |> then(fn socket -> send(self(), {:fetch_instructors, new_params}); socket end)}
+  end
+
+  defp handle_filter_event(params, socket) do
+    current_params = socket.assigns.params
+    new_params = Map.merge(current_params, params)
+
+    {:noreply,
+     socket
+     |> assign(:params, new_params)
+     |> then(fn socket -> send(self(), {:fetch_instructors, new_params}); socket end)}
+  end
+
   # =============================================================================
   # DATA FETCHING & PAGINATION
   # =============================================================================
 
   defp fetch_instructors(socket, params) do
-    data = get_instructors_with_filters(params)
-    pagination = Util.generate_pagination_details(data)
+    {data, pagination} = get_instructors_with_pagination_and_filters(params)
     stats = get_instructor_stats()
+
+    # Hide loader and update data
+    socket = push_event(socket, "hide-loader", %{id: "instructors-loader"})
 
     {:noreply,
      assign(socket, :data, data)
@@ -244,6 +302,110 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
      |> assign(:data_loader, false)
      |> assign(:filter_modal, false)
      |> assign(:params, params)}
+  end
+
+  defp get_instructors_with_pagination_and_filters(params) do
+    page = String.to_integer(params["page"] || "1")
+    per_page = String.to_integer(params["per_page"] || "5")
+    sort_field = params["sort_field"] || "inserted_at"
+    sort_direction = params["sort_direction"] || "desc"
+
+    # Get instructors with pagination
+    data = get_instructors_with_pagination(page, per_page, sort_field, sort_direction, extract_filters_for_context(params))
+    total_count = get_instructors_count(extract_filters_for_context(params))
+
+    pagination = %{
+      current_page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: ceil(total_count / per_page),
+      has_prev: page > 1,
+      has_next: page < ceil(total_count / per_page)
+    }
+
+    {data, pagination}
+  end
+
+  defp get_instructors_with_pagination(page, per_page, sort_field, sort_direction, filters) do
+    User
+    |> preload([:role])
+    |> where([u], u.user_type == "INSTRUCTOR")
+    |> apply_instructors_filters(filters)
+    |> apply_instructors_sorting(sort_field, sort_direction)
+    |> limit(^per_page)
+    |> offset(^((page - 1) * per_page))
+    |> Repo.all()
+  end
+
+  defp get_instructors_count(filters) do
+    User
+    |> where([u], u.user_type == "INSTRUCTOR")
+    |> apply_instructors_filters(filters)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  defp apply_instructors_filters(query, filters) do
+    # If no filters, return the query as is
+    if map_size(filters) == 0 do
+      query
+    else
+      Enum.reduce(filters, query, fn {key, value}, acc ->
+        case {key, value} do
+          {:search, search} when is_binary(search) and byte_size(search) > 0 ->
+            search_term = "%#{search}%"
+            from(u in acc,
+              where: ilike(u.first_name, ^search_term) or
+                     ilike(u.last_name, ^search_term) or
+                     ilike(u.email, ^search_term) or
+                     ilike(u.username, ^search_term))
+          {:status, status} when is_binary(status) and byte_size(status) > 0 ->
+            from(u in acc, where: u.status == ^status)
+          {:hearing_status, hearing_status} when is_binary(hearing_status) and byte_size(hearing_status) > 0 ->
+            from(u in acc, where: u.hearing_status == ^hearing_status)
+          {:gender, gender} when is_binary(gender) and byte_size(gender) > 0 ->
+            from(u in acc, where: u.gender == ^gender)
+          _ -> acc
+        end
+      end)
+    end
+  end
+
+  defp apply_instructors_sorting(query, sort_field, sort_direction) do
+    case {sort_field, sort_direction} do
+      {"first_name", "asc"} -> from(u in query, order_by: [asc: u.first_name])
+      {"first_name", "desc"} -> from(u in query, order_by: [desc: u.first_name])
+      {"last_name", "asc"} -> from(u in query, order_by: [asc: u.last_name])
+      {"last_name", "desc"} -> from(u in query, order_by: [desc: u.last_name])
+      {"email", "asc"} -> from(u in query, order_by: [asc: u.email])
+      {"email", "desc"} -> from(u in query, order_by: [desc: u.email])
+      {"username", "asc"} -> from(u in query, order_by: [asc: u.username])
+      {"username", "desc"} -> from(u in query, order_by: [desc: u.username])
+      {"inserted_at", "asc"} -> from(u in query, order_by: [asc: u.inserted_at])
+      {"inserted_at", "desc"} -> from(u in query, order_by: [desc: u.inserted_at])
+      _ -> from(u in query, order_by: [desc: u.inserted_at])
+    end
+  end
+
+  defp extract_filters_for_context(params) do
+    filters = %{}
+
+    filters = if params["search"] && String.trim(params["search"]) != "", do: Map.put(filters, :search, String.trim(params["search"])), else: filters
+    filters = if params["status"] && String.trim(params["status"]) != "", do: Map.put(filters, :status, String.trim(params["status"])), else: filters
+    filters = if params["hearing_status"] && String.trim(params["hearing_status"]) != "", do: Map.put(filters, :hearing_status, String.trim(params["hearing_status"])), else: filters
+    filters = if params["gender"] && String.trim(params["gender"]) != "", do: Map.put(filters, :gender, String.trim(params["gender"])), else: filters
+
+    filters
+  end
+
+  defp extract_filters(params) do
+    filters = %{}
+
+    filters = if params["search"] && String.trim(params["search"]) != "", do: Map.put(filters, :search, String.trim(params["search"])), else: filters
+    filters = if params["status"] && String.trim(params["status"]) != "", do: Map.put(filters, :status, String.trim(params["status"])), else: filters
+    filters = if params["hearing_status"] && String.trim(params["hearing_status"]) != "", do: Map.put(filters, :hearing_status, String.trim(params["hearing_status"])), else: filters
+    filters = if params["gender"] && String.trim(params["gender"]) != "", do: Map.put(filters, :gender, String.trim(params["gender"])), else: filters
+
+    filters
   end
 
   defp get_instructors_with_filters(params) do
@@ -289,9 +451,28 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     from(u in query, where: u.gender == ^gender)
   end
 
-  defp handle_reload(socket) do
-    {:noreply, push_patch(socket, to: ~p"/admin/instructors")}
+        defp handle_reload(socket) do
+    # Show loader using your existing system
+    socket = push_event(socket, "show-loader", %{
+      id: "instructors-loader",
+      message: "Refreshing Data",
+      subtext: "Please wait while we fetch the latest instructor information..."
+    })
+
+    # Clear all filters and reset to initial state
+    cleared_params = %{}
+
+    # Add a small delay to make the loader visible and provide better UX
+    Process.send_after(self(), {:fetch_instructors, cleared_params}, 300)
+
+    {:noreply,
+     socket
+     |> assign(:params, cleared_params)
+     |> assign(:filter_params, %{})
+     |> assign(:filters, %{})}
   end
+
+
 
   # =============================================================================
   # EXPORT HANDLERS
@@ -474,5 +655,27 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
       "FLUENT" -> "bg-green-100 text-green-800"
       _ -> "bg-gray-100 text-gray-800"
     end
+  end
+
+  # =============================================================================
+  # PAGINATION HANDLERS
+  # =============================================================================
+
+  defp handle_change_page(%{"page" => page}, socket) do
+    current_params = socket.assigns.params
+    new_params = Map.put(current_params, "page", page)
+    fetch_instructors(socket, new_params)
+  end
+
+  defp handle_change_per_page(%{"value" => per_page}, socket) do
+    current_params = socket.assigns.params
+    new_params = Map.merge(current_params, %{"per_page" => per_page, "page" => "1"})
+    fetch_instructors(socket, new_params)
+  end
+
+  defp handle_sort_event(%{"sort_field" => sort_field, "sort_direction" => sort_direction}, socket) do
+    current_params = socket.assigns.params
+    new_params = Map.merge(current_params, %{"sort_field" => sort_field, "sort_direction" => sort_direction})
+    fetch_instructors(socket, new_params)
   end
 end

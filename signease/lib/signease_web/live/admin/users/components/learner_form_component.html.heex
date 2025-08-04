@@ -46,7 +46,7 @@
             2
           </div>
           <span class={if @current_step >= 2, do: "text-sm font-medium text-gray-700", else: "text-sm font-medium text-gray-500"}>
-            Professional Background
+            Academic Background
           </span>
         </div>
 
@@ -115,7 +115,7 @@
 
       <.form
         for={@changeset}
-        id="instructor-form"
+        id="learner-form"
         phx-target={@myself}
         phx-submit="save"
         phx-change="validate"
@@ -137,8 +137,6 @@
                 <p class="text-xs text-gray-500">Basic personal details and contact information</p>
               </div>
             </div>
-
-
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="space-y-1">
@@ -255,7 +253,7 @@
           </div>
         </div>
 
-        <!-- Step 2: Professional and Academic Background -->
+        <!-- Step 2: Academic Background -->
         <div class={if @current_step == 2, do: "block", else: "hidden"}>
           <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
             <div class="flex items-center mb-4">
@@ -267,8 +265,8 @@
                 </div>
               </div>
               <div class="ml-2">
-                <h4 class="text-base font-semibold text-gray-900">Professional and Academic Background</h4>
-                <p class="text-xs text-gray-500">Educational qualifications and teaching experience</p>
+                <h4 class="text-base font-semibold text-gray-900">Academic Background</h4>
+                <p class="text-xs text-gray-500">Educational qualifications and learning preferences</p>
               </div>
             </div>
 
@@ -281,6 +279,8 @@
                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"
                 >
                   <option value="">Select education level</option>
+                  <option value="primary" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "primary"}>Primary School</option>
+                  <option value="secondary" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "secondary"}>Secondary School</option>
                   <option value="high_school" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "high_school"}>High School</option>
                   <option value="associate_degree" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "associate_degree"}>Associate Degree</option>
                   <option value="bachelors" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "bachelors"}>Bachelor's Degree</option>
@@ -303,13 +303,13 @@
               </div>
 
               <div class="md:col-span-2 space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Subjects of Expertise</label>
+                <label class="block text-xs font-medium text-gray-700">Learning Preferences</label>
                 <textarea
                   name="user[subjects_expertise]"
                   value={Ecto.Changeset.get_field(@changeset, :subjects_expertise)}
                   rows="2"
                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
-                  placeholder="Enter subjects you specialize in (e.g., Mathematics, Science, Sign Language, etc.)"
+                  placeholder="Enter your learning preferences and subjects of interest (e.g., Mathematics, Science, Sign Language, etc.)"
                 ></textarea>
               </div>
             </div>
@@ -332,8 +332,6 @@
                 <p class="text-xs text-gray-500">Account credentials and system details</p>
               </div>
             </div>
-
-
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="space-y-1">
@@ -370,7 +368,7 @@
               </div>
 
               <div class="md:col-span-2 space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Tutor ID</label>
+                <label class="block text-xs font-medium text-gray-700">Student ID</label>
                 <input
                   type="text"
                   value="Auto-generated"
@@ -428,7 +426,7 @@
                 <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <%= if @action == :new, do: "Create Instructor", else: "Update Instructor" %>
+                <%= if @action == :new, do: "Create Learner", else: "Update Learner" %>
               </button>
             <% end %>
           </div>

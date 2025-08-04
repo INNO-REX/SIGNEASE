@@ -252,13 +252,36 @@
 }
 
 @keyframes slideInUp {
-  from {
+  0% {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(100px) scale(0.95);
   }
-  to {
+  50% {
+    opacity: 0.7;
+    transform: translateY(50px) scale(0.98);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-slide-down {
+  animation: slideOutDown 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+}
+
+@keyframes slideOutDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100px) scale(0.95);
   }
 }
 
@@ -737,3 +760,24 @@
     font-size: 12px;
   }
 }
+
+/* Modal entrance animations */
+.modal-content-enter {
+  animation: modalContentEnter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes modalContentEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered form element animations */
+.form-step-1 { animation-delay: 0.1s; }
+.form-step-2 { animation-delay: 0.2s; }
+.form-step-3 { animation-delay: 0.3s; }

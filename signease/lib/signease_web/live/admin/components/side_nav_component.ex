@@ -236,7 +236,11 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
             <!-- Approvals & Moderation Dropdown -->
             <div class="space-y-1">
               <button @click="activeDropdown = activeDropdown === 'approvals-moderation' ? null : 'approvals-moderation'"
-                      class="group flex items-center justify-between w-full px-2 py-2 text-xs font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                      class={[
+                        "group flex items-center justify-between w-full px-2 py-2 text-xs font-medium rounded-md transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg",
+                        @current_page == "user-approvals" && "bg-gray-700 text-white",
+                        @current_page != "user-approvals" && "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      ]}>
                 <div class="flex items-center min-w-0">
                   <svg class="mr-2 flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -260,11 +264,26 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
                    x-transition:leave-end="opacity-0 transform -translate-y-2"
                    class="ml-4 space-y-1 overflow-hidden" style="display: none;">
                 <button @click="handleButtonClick('approvals-moderation')" phx-click="navigate-to-user-approvals" phx-target={@myself}
-                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                        class={[
+                          "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg",
+                          @current_page == "user-approvals" && "bg-gray-700 text-white",
+                          @current_page != "user-approvals" && "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        ]}>
                   <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                   </svg>
                   User Approvals
+                </button>
+                <button @click="handleButtonClick('approvals-moderation')" phx-click="navigate-to-blocked-users" phx-target={@myself}
+                        class={[
+                          "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg",
+                          @current_page == "blocked-users" && "bg-gray-700 text-white",
+                          @current_page != "blocked-users" && "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        ]}>
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                  </svg>
+                  Blocked Users
                 </button>
                 <button @click="handleButtonClick('approvals-moderation')" phx-click="navigate-to-content-moderation" phx-target={@myself}
                         class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
@@ -544,9 +563,13 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
     {:noreply, push_navigate(socket, to: "/admin/role-assignments")}
   end
 
-  # Approvals & Moderation Events (Not yet implemented)
+  # Approvals & Moderation Events
   def handle_event("navigate-to-user-approvals", _params, socket) do
-    {:noreply, put_flash(socket, :info, "User Approvals - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/user-approvals")}
+  end
+
+  def handle_event("navigate-to-blocked-users", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/blocked-users")}
   end
 
   def handle_event("navigate-to-content-moderation", _params, socket) do

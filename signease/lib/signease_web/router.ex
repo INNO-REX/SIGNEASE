@@ -76,13 +76,25 @@ defmodule SigneaseWeb.Router do
     # User Management
     # ---------------
     live "/users", Users.AllUsers.UsersLive                   # All users management
+    live "/users/new", Users.AllUsers.UsersLive, :new
+    live "/users/filter", Users.AllUsers.UsersLive, :filter
+    live "/users/:id", Users.AllUsers.UsersLive, :show
+    live "/users/:id/edit", Users.AllUsers.UsersLive, :edit
     live "/learners", Users.Learners.LearnersLive             # Learner-specific management
+    live "/learners/new", Users.Learners.LearnersLive, :new
+    live "/learners/filter", Users.Learners.LearnersLive, :filter
+    live "/learners/:id", Users.Learners.LearnersLive, :show
+    live "/learners/:id/edit", Users.Learners.LearnersLive, :edit
     live "/instructors", Users.Instructors.InstructorsLive    # Instructor management
     live "/instructors/new", Users.Instructors.InstructorsLive, :new
     live "/instructors/filter", Users.Instructors.InstructorsLive, :filter
     live "/instructors/:id", Users.Instructors.InstructorsLive, :show
     live "/instructors/:id/edit", Users.Instructors.InstructorsLive, :edit
     live "/admins", Users.Admins.AdminsLive                   # Admin user management
+    live "/admins/new", Users.Admins.AdminsLive, :new
+    live "/admins/filter", Users.Admins.AdminsLive, :filter
+    live "/admins/:id", Users.Admins.AdminsLive, :show
+    live "/admins/:id/edit", Users.Admins.AdminsLive, :edit
     live "/user-import", Users.UserImportLive                 # Bulk user import
 
     # Role & Permission Management
@@ -103,6 +115,11 @@ defmodule SigneaseWeb.Router do
     # Content Moderation
     # ------------------
     live "/user-approvals", Moderation.UserApprovalsLive      # User approval queue
+    live "/user-approvals/filter", Moderation.UserApprovalsLive, :filter
+    live "/user-approvals/:id", Moderation.UserApprovalsLive, :show
+    live "/blocked-users", Moderation.BlockedUsersLive        # Blocked and rejected users
+    live "/blocked-users/filter", Moderation.BlockedUsersLive, :filter
+    live "/blocked-users/:id", Moderation.BlockedUsersLive, :show
     live "/content-moderation", Moderation.ContentModerationLive # Content moderation
     live "/reported-issues", Moderation.ReportedIssuesLive    # Issue reports
 
@@ -118,7 +135,9 @@ defmodule SigneaseWeb.Router do
     live "/notifications", Notifications.PushNotifications.Index                    # View all notifications
     live "/notifications/manage", Notifications.Manage.Index                       # Manage notifications
     live "/notifications/email-logs", Notifications.EmailLogs.Index               # Email notification logs
-    live "/notifications/sms-logs", Notifications.SmsLogs.Index                   # SMS notification logs
+    live "/notifications/sms-logs", Notifications.SmsLogs.Index, as: :sms_logs                   # SMS notification logs
+    live "/notifications/sms-logs/filter", Notifications.SmsLogs.Index, :filter, as: :sms_logs
+    live "/notifications/sms-logs/:id", Notifications.SmsLogs.Index, :show, as: :sms_logs
 
     # System Administration
     # ---------------------
