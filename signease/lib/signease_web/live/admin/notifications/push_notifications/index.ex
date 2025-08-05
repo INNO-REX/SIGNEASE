@@ -16,7 +16,8 @@ defmodule SigneaseWeb.Admin.Notifications.PushNotifications.Index do
       page_title: "Push Notifications",
       current_path: "/admin/notifications/push_notifications",
       current_page: "notifications",
-      stats: get_notification_stats()
+      stats: get_notification_stats(),
+      selected_notification: nil
     )}
   end
 
@@ -52,6 +53,17 @@ defmodule SigneaseWeb.Admin.Notifications.PushNotifications.Index do
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Failed to create sample notification")}
     end
+  end
+
+  @impl true
+  def handle_event("view_notification", %{"id" => id}, socket) do
+    notification = Enum.find(socket.assigns.notifications, &(&1.id == String.to_integer(id)))
+    {:noreply, assign(socket, selected_notification: notification)}
+  end
+
+  @impl true
+  def handle_event("close_notification_modal", _params, socket) do
+    {:noreply, assign(socket, selected_notification: nil)}
   end
 
   @impl true

@@ -97,7 +97,8 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reload" -> handle_reload(socket)
       "show_create_modal" -> handle_show_create_modal(socket)
       "open_filter" -> handle_open_filter(socket)
@@ -128,6 +129,12 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
 
       :close_modal ->
         {:noreply, push_patch(socket, to: ~p"/admin/admins")}
+
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
 
       _ ->
         {:noreply, socket}
@@ -202,19 +209,53 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
     end
   end
 
-  defp handle_delete_event(%{"id" => id}, socket) do
-    case Accounts.delete_user(id, socket.assigns.current_user.id) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Administrator deleted successfully.")
-         |> push_navigate(to: @url, replace: true)}
+  defp handle_block_event(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete administrator: #{reason}")
-         |> push_navigate(to: @url, replace: true)}
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if admin.id == 1 or Accounts.is_seed_user?(admin) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(admin, socket.assigns.current_user.id) do
+        {:ok, _admin} ->
+          # Refresh the admins list
+          send(self(), {:fetch_admins, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Administrator blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block administrator: #{reason}")}
+      end
+    end
+  end
+
+  defp handle_delete_event(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if admin.id == 1 or Accounts.is_seed_user?(admin) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(admin, socket.assigns.current_user.id) do
+        {:ok, _admin} ->
+          # Refresh the admins list
+          send(self(), {:fetch_admins, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Administrator deleted successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete administrator: #{reason}")}
+      end
     end
   end
 
@@ -261,7 +302,7 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
 
     User
     |> preload([:role])
-    |> where([u], u.user_type == "ADMIN" or u.role_id in [1, 2])
+    |> where([u], (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at))
     |> apply_filters(filters)
     |> apply_sorting(sort_field, sort_direction)
     |> limit(^per_page)
@@ -284,7 +325,7 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
 
   defp get_total_admins_count(filters) do
     User
-    |> where([u], u.user_type == "ADMIN" or u.role_id in [1, 2])
+    |> where([u], (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at))
     |> apply_filters(filters)
     |> Repo.aggregate(:count, :id)
   end
@@ -343,6 +384,48 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
   end
 
   # =============================================================================
+  # CONFIRMATION HANDLERS
+  # =============================================================================
+
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{admin.first_name} #{admin.last_name}"})}
+  end
+
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{admin.first_name} #{admin.last_name}"})}
+  end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  # =============================================================================
   # UTILITY FUNCTIONS
   # =============================================================================
 
@@ -358,6 +441,9 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
     |> assign(:success_modal, false)
     |> assign(:error_message, "")
     |> assign(:success_message, "")
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_admin_stats())
   end
 
@@ -406,10 +492,10 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
   end
 
   defp get_admin_stats do
-    total_admins = Repo.aggregate(from(u in User, where: u.user_type == "ADMIN" or u.role_id in [1, 2]), :count, :id)
-    active_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.user_status == "ACTIVE"), :count, :id)
-    pending_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.status == "PENDING_APPROVAL"), :count, :id)
-    disabled_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.disabled == true), :count, :id)
+    total_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at)), :count, :id)
+    active_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.user_status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    disabled_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.disabled == true and is_nil(u.deleted_at)), :count, :id)
 
     %{
       total_users: total_admins,

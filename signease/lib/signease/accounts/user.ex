@@ -7,7 +7,7 @@ defmodule Signease.Accounts.User do
     approved disabled disabled_reason blocked branch_code branch_id username profile_picture
     last_pwd_update role_id hearing_status learning_preferences accessibility_needs
     preferred_language sign_language_skills gender date_of_birth education_level years_experience
-    subjects_expertise inserted_at updated_at approved_by approved_at
+    subjects_expertise program enrolled_year semester inserted_at updated_at approved_by approved_at
     rejected_by rejected_at rejection_reason deleted_by deleted_at)a
 
   schema "users" do
@@ -51,6 +51,11 @@ defmodule Signease.Accounts.User do
     field :education_level, :string # high_school, associate_degree, bachelors, masters, doctorate, other
     field :years_experience, :integer
     field :subjects_expertise, :string
+
+    # Learner specific fields
+    field :program, :string # e.g., "Computer Science", "Mathematics", "Sign Language Studies"
+    field :enrolled_year, :integer # e.g., 2024, 2025
+    field :semester, :string # e.g., "Fall", "Spring", "Summer", "Winter"
 
     # Approval tracking
     belongs_to :approver, Signease.Accounts.User,
@@ -181,7 +186,7 @@ defmodule Signease.Accounts.User do
   """
   def status_changeset(user, attrs) do
     user
-    |> cast(attrs, [:status, :user_status, :disabled_reason])
+    |> cast(attrs, [:status, :user_status, :disabled_reason, :blocked, :updated_by, :deleted_by, :deleted_at])
   end
 
   # Private validation functions

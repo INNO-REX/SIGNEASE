@@ -106,7 +106,8 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
       "show_create_modal" -> handle_show_create_modal(socket)
@@ -146,6 +147,12 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
 
       :close_modal ->
         {:noreply, push_patch(socket, to: ~p"/admin/instructors")}
+
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
 
       _ ->
         {:noreply, socket}
@@ -220,19 +227,53 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     end
   end
 
-  defp handle_delete_event(%{"id" => id}, socket) do
-    case Accounts.delete_user(id, socket.assigns.current_user.id) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Instructor deleted successfully.")
-         |> push_navigate(to: @url, replace: true)}
+  defp handle_block_event(%{"id" => id}, socket) do
+    instructor = Accounts.get_user!(id)
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete instructor: #{reason}")
-         |> push_navigate(to: @url, replace: true)}
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if instructor.id == 1 or Accounts.is_seed_user?(instructor) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(instructor, socket.assigns.current_user.id) do
+        {:ok, _instructor} ->
+          # Refresh the instructors list
+          send(self(), {:fetch_instructors, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Instructor blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block instructor: #{reason}")}
+      end
+    end
+  end
+
+  defp handle_delete_event(%{"id" => id}, socket) do
+    instructor = Accounts.get_user!(id)
+
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if instructor.id == 1 or Accounts.is_seed_user?(instructor) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(instructor, socket.assigns.current_user.id) do
+        {:ok, _instructor} ->
+          # Refresh the instructors list
+          send(self(), {:fetch_instructors, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Instructor deleted successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete instructor: #{reason}")}
+      end
     end
   end
 
@@ -249,6 +290,48 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
         {:noreply,
          socket
          |> put_flash(:error, "Failed to reset password: #{reason}")}
+    end
+  end
+
+  # =============================================================================
+  # CONFIRMATION HANDLERS
+  # =============================================================================
+
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    instructor = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{instructor.first_name} #{instructor.last_name}"})}
+  end
+
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    instructor = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{instructor.first_name} #{instructor.last_name}"})}
+  end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
     end
   end
 
@@ -329,7 +412,7 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
   defp get_instructors_with_pagination(page, per_page, sort_field, sort_direction, filters) do
     User
     |> preload([:role])
-    |> where([u], u.user_type == "INSTRUCTOR")
+    |> where([u], u.user_type == "INSTRUCTOR" and is_nil(u.deleted_at))
     |> apply_instructors_filters(filters)
     |> apply_instructors_sorting(sort_field, sort_direction)
     |> limit(^per_page)
@@ -339,7 +422,7 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
 
   defp get_instructors_count(filters) do
     User
-    |> where([u], u.user_type == "INSTRUCTOR")
+    |> where([u], u.user_type == "INSTRUCTOR" and is_nil(u.deleted_at))
     |> apply_instructors_filters(filters)
     |> Repo.aggregate(:count, :id)
   end
@@ -502,6 +585,9 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
     |> assign(:filter_modal, false)
     |> assign(:filter_params, %{})
     |> assign(:pagination, nil)
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_instructor_stats())
   end
 
@@ -550,10 +636,10 @@ defmodule SigneaseWeb.Admin.Users.Instructors.InstructorsLive do
   end
 
   defp get_instructor_stats do
-    total_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR"), :count, :id)
-    active_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.user_status == "ACTIVE"), :count, :id)
-    pending_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.status == "PENDING_APPROVAL"), :count, :id)
-    disabled_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.disabled == true), :count, :id)
+    total_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and is_nil(u.deleted_at)), :count, :id)
+    active_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.user_status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    disabled_instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and u.disabled == true and is_nil(u.deleted_at)), :count, :id)
 
     %{
       total_users: total_instructors,

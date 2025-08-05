@@ -22,6 +22,10 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
        |> assign(assigns)
        |> assign(:user, %User{})
        |> assign(:changeset, changeset)
+       |> assign(:current_step, 1)
+       |> assign(:validation_errors, [])
+       |> assign(:show_errors, false)
+       |> assign(:title, "Learner Registration")
        |> assign(:page_title, "New Learner")}
     else
       user = Accounts.get_user!(id)
@@ -32,19 +36,71 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
        |> assign(assigns)
        |> assign(:user, user)
        |> assign(:changeset, changeset)
+       |> assign(:current_step, 1)
+       |> assign(:validation_errors, [])
+       |> assign(:show_errors, false)
+       |> assign(:title, "Learner Information")
        |> assign(:page_title, "Edit Learner")}
     end
   end
 
   @impl true
+  def handle_event("next_step", _params, socket) do
+    case validate_current_step(socket.assigns.changeset, socket.assigns.current_step) do
+      {:ok, _} ->
+        next_step = min(socket.assigns.current_step + 1, 3)
+        {:noreply, assign(socket, :current_step, next_step)}
+
+      {:error, errors} ->
+        {:noreply,
+         socket
+         |> assign(:validation_errors, errors)
+         |> assign(:show_errors, true)}
+    end
+  end
+
+  @impl true
+  def handle_event("previous_step", _params, socket) do
+    previous_step = max(socket.assigns.current_step - 1, 1)
+    {:noreply, assign(socket, :current_step, previous_step)}
+  end
+
+  @impl true
+  def handle_event("validate", %{"user" => user_params}, socket) do
+    changeset =
+      socket.assigns.user
+      |> Accounts.change_user(user_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :changeset, changeset)}
+  end
+
+  @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
-    save_user(socket, socket.assigns.action, user_params)
+    case validate_all_steps(user_params) do
+      {:ok, _} ->
+        save_user(socket, socket.assigns.action, user_params)
+
+      {:error, errors} ->
+        {:noreply,
+         socket
+         |> assign(:validation_errors, errors)
+         |> assign(:show_errors, true)}
+    end
   end
 
   @impl true
   def handle_event("close", _params, socket) do
     notify_parent(:close_modal)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("clear_errors", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:validation_errors, [])
+     |> assign(:show_errors, false)}
   end
 
   defp save_user(socket, :edit, user_params) do
@@ -68,6 +124,7 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
     |> Map.update("date_of_birth", "", &if(&1 == "", do: nil, else: &1))
     |> Map.update("gender", "", &if(&1 == "", do: nil, else: &1))
     |> Map.update("hearing_status", "", &String.upcase/1)
+    |> Map.update("enrolled_year", "", &if(&1 == "", do: nil, else: String.to_integer(&1)))
 
     # Add learner-specific attributes
     user_params = cleaned_params
@@ -97,150 +154,79 @@ defmodule SigneaseWeb.Admin.Users.Components.LearnerFormComponent do
     end
   end
 
+  defp validate_current_step(changeset, step) do
+    case step do
+      1 -> validate_step_1(changeset)
+      2 -> validate_step_2(changeset)
+      3 -> validate_step_3(changeset)
+      _ -> {:ok, changeset}
+    end
+  end
+
+  defp validate_step_1(changeset) do
+    required_fields = [:first_name, :last_name, :email, :phone, :username]
+    errors = validate_required_fields(changeset, required_fields, 1)
+
+    if Enum.empty?(errors), do: {:ok, changeset}, else: {:error, errors}
+  end
+
+  defp validate_step_2(changeset) do
+    required_fields = [:program, :enrolled_year, :semester]
+    errors = validate_required_fields(changeset, required_fields, 2)
+
+    if Enum.empty?(errors), do: {:ok, changeset}, else: {:error, errors}
+  end
+
+  defp validate_step_3(changeset) do
+    required_fields = [:hearing_status]
+    errors = validate_required_fields(changeset, required_fields, 3)
+
+    if Enum.empty?(errors), do: {:ok, changeset}, else: {:error, errors}
+  end
+
+  defp validate_all_steps(user_params) do
+    changeset = %User{}
+    |> Accounts.change_user(user_params)
+
+    all_required_fields = [:first_name, :last_name, :email, :phone, :username, :program, :enrolled_year, :semester, :hearing_status]
+    errors = validate_required_fields(changeset, all_required_fields, 1)
+
+    if Enum.empty?(errors), do: {:ok, changeset}, else: {:error, errors}
+  end
+
+  defp validate_required_fields(changeset, fields, step) do
+    Enum.reduce(fields, [], fn field, acc ->
+      case Ecto.Changeset.get_field(changeset, field) do
+        nil -> [%{field: field, message: "#{format_field_name(field)} is required", step: step} | acc]
+        "" -> [%{field: field, message: "#{format_field_name(field)} is required", step: step} | acc]
+        _ -> acc
+      end
+    end)
+  end
+
+  defp format_field_name(field) do
+    field
+    |> to_string()
+    |> String.replace("_", " ")
+    |> String.capitalize()
+  end
+
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="learner-modal">
-      <div class="relative top-5 mx-auto p-4 border w-11/12 max-w-3xl shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <!-- Header -->
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-2xl font-bold text-gray-900">
-              <%= @page_title %>
-            </h3>
-            <button
-              phx-click="close"
-              phx-target={@myself}
-              class="text-gray-400 hover:text-gray-600"
-            >
-              <.icon name="hero-x-mark" class="h-6 w-6" />
-            </button>
-          </div>
+  # Helper functions for template
+  defp has_field_error?(changeset, field) do
+    case Ecto.Changeset.get_field(changeset, field) do
+      nil -> false
+      "" -> false
+      _ -> false
+    end
+  end
 
-          <!-- Form -->
-          <.form
-            for={@changeset}
-            id="learner-form"
-            phx-target={@myself}
-            phx-submit="save"
-            class="space-y-3"
-          >
-            <!-- Basic Information -->
-            <div class="bg-gray-50 p-3 rounded-lg">
-              <h4 class="text-md font-semibold text-gray-900 mb-3">Basic Information</h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div>
-                  <.input
-                    type="text"
-                    name="user[first_name]"
-                    value={Ecto.Changeset.get_field(@changeset, :first_name)}
-                    label="First Name"
-                    required
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="text"
-                    name="user[last_name]"
-                    value={Ecto.Changeset.get_field(@changeset, :last_name)}
-                    label="Last Name"
-                    required
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="text"
-                    name="user[username]"
-                    value={Ecto.Changeset.get_field(@changeset, :username)}
-                    label="Username"
-                    required
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="email"
-                    name="user[email]"
-                    value={Ecto.Changeset.get_field(@changeset, :email)}
-                    label="Email Address"
-                    required
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="tel"
-                    name="user[phone]"
-                    value={Ecto.Changeset.get_field(@changeset, :phone)}
-                    label="Phone Number"
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="date"
-                    name="user[date_of_birth]"
-                    value={Ecto.Changeset.get_field(@changeset, :date_of_birth)}
-                    label="Date of Birth"
-                  />
-                </div>
-                <div>
-                  <.input
-                    type="select"
-                    name="user[gender]"
-                    value={Ecto.Changeset.get_field(@changeset, :gender)}
-                    label="Gender"
-                    options={[
-                      {"", ""},
-                      {"male", "Male"},
-                      {"female", "Female"},
-                      {"other", "Other"}
-                    ]}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Hearing Status -->
-            <div class="bg-gray-50 p-3 rounded-lg">
-              <h4 class="text-md font-semibold text-gray-900 mb-3">Hearing Status</h4>
-              <div class="grid grid-cols-1 gap-3">
-                <div>
-                  <.input
-                    type="select"
-                    name="user[hearing_status]"
-                    value={Ecto.Changeset.get_field(@changeset, :hearing_status)}
-                    label="Hearing Status"
-                    options={[
-                      {"HEARING", "Hearing"},
-                      {"DEAF", "Deaf"},
-                      {"HARD_OF_HEARING", "Hard of Hearing"}
-                    ]}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex justify-end space-x-3 pt-3 border-t">
-              <button
-                type="button"
-                phx-click="close"
-                phx-target={@myself}
-                class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-              >
-                <%= if @action == :new, do: "Create Learner", else: "Update Learner" %>
-              </button>
-            </div>
-          </.form>
-        </div>
-      </div>
-    </div>
-    """
+  defp get_field_error(changeset, field) do
+    case Ecto.Changeset.get_field(changeset, field) do
+      nil -> "#{format_field_name(field)} is required"
+      "" -> "#{format_field_name(field)} is required"
+      _ -> ""
+    end
   end
 end

@@ -159,33 +159,43 @@
               <!-- Enhanced Table Container -->
               <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <.table id="tbl_learners" rows={@learners} class="min-w-full">
-                  <:col :let={learner} label="First Name" class="w-20">
-                    <div class="font-medium text-gray-900 text-xs px-2 py-1.5 pl-4">
+                  <:col :let={learner} label="First Name" class="w-16">
+                    <div class="font-medium text-gray-900 text-xs px-2 py-1 pl-8">
                       <%= learner.first_name %>
                     </div>
                   </:col>
-                  <:col :let={learner} label="Last Name" class="w-20">
-                    <div class="font-medium text-gray-900 text-xs px-2 py-1.5">
+                  <:col :let={learner} label="Last Name" class="w-16">
+                    <div class="font-medium text-gray-900 text-xs px-2 py-1">
                       <%= learner.last_name %>
                     </div>
                   </:col>
-                  <:col :let={learner} label="Email" class="w-40">
-                    <div class="text-xs text-gray-600 px-2 py-1.5 truncate">
+                  <:col :let={learner} label="Email" class="w-32">
+                    <div class="text-xs text-gray-600 px-2 py-1 truncate">
                       <%= learner.email %>
                     </div>
                   </:col>
-                  <:col :let={learner} label="Phone" class="w-28">
-                    <div class="text-xs text-gray-600 px-2 py-1.5">
+                  <:col :let={learner} label="Phone" class="w-24">
+                    <div class="text-xs text-gray-600 px-2 py-1">
                       <%= learner.phone || "N/A" %>
                     </div>
                   </:col>
-                  <:col :let={learner} label="Type" class="w-16">
-                    <div class="text-xs text-gray-600 px-2 py-1.5">
-                      Learner
+                  <:col :let={learner} label="Program" class="w-24">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      <%= learner.program || "N/A" %>
+                    </div>
+                  </:col>
+                  <:col :let={learner} label="Year" class="w-12">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      <%= learner.enrolled_year || "N/A" %>
+                    </div>
+                  </:col>
+                  <:col :let={learner} label="Semester" class="w-16">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      <%= learner.semester || "N/A" %>
                     </div>
                   </:col>
                   <:col :let={learner} label="Status" class="w-16"> 
-                    <div class="px-2 py-1.5">
+                    <div class="px-2 py-1">
                       <span class={[
                         "inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium",
                         get_status_class(learner.status)
@@ -196,7 +206,7 @@
                   </:col>
                   
                   <:col :let={learner} label="Hearing Status" class="w-20"> 
-                    <div class="px-2 py-1.5">
+                    <div class="px-2 py-1">
                       <span class={[
                         "inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium",
                         get_hearing_status_class(learner.hearing_status)
@@ -207,54 +217,67 @@
                   </:col>
                   
                   <:col :let={learner} label="Created" class="w-20">
-                    <div class="text-xs text-gray-600 px-2 py-1.5">
+                    <div class="text-xs text-gray-600 px-2 py-1">
                       <%= Calendar.strftime(learner.inserted_at, "%b %d, %Y") %>
                     </div>
                   </:col>
                   
                   <:col :let={learner} label="Actions" class="w-16">
-                    <div class="px-2 py-1.5">
+                    <div class="px-2 py-1 pr-6">
                       <.dropdown id={"dropdown-#{learner.id}"} label="Options">
                         
-                      <.link patch={~p"/admin/learners/#{learner.id}"} class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <.link patch={~p"/admin/learners/#{learner.id}"} class="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
                         View Details
                       </.link>
 
-                      <.link navigate={~p"/learner/dashboard?user_id=#{learner.id}"} class="flex items-center px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <.link navigate={~p"/learner/dashboard?user_id=#{learner.id}"} class="flex items-center px-2 py-1.5 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                         View Progress
                       </.link>
 
-                       <.link patch={~p"/admin/learners/#{learner.id}/edit"} class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <.link patch={~p"/admin/learners/#{learner.id}/edit"} class="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                         Edit
                       </.link>
 
-                      <.link class="flex items-center px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-150" 
+                      <.link class="flex items-center px-2 py-1.5 text-xs text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-150" 
                         phx-click="reset_password"
                         phx-value-id={learner.id}>
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                         </svg>
                         Reset Password
                       </.link>
 
-                       <.link class="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150" 
-                          phx-click="delete"
-                          phx-value-id={learner.id} >
-                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                          Delete
-                        </.link>
+                                  <%= if learner.id != 1 and not Signease.Accounts.is_seed_user?(learner) do %>
+              <.link class="flex items-center px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150"
+                phx-click="block"
+                phx-value-id={learner.id}>
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                </svg>
+                Block User
+              </.link>
+            <% end %>
+
+                       <%= if learner.id != 1 and not Signease.Accounts.is_seed_user?(learner) do %>
+                         <.link class="flex items-center px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150" 
+                            phx-click="delete"
+                            phx-value-id={learner.id} >
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete
+                          </.link>
+                       <% end %>
 
                     </.dropdown>
                   </div>
@@ -288,9 +311,24 @@
 <%= if @show_modal do %>
   <.live_component
     module={SigneaseWeb.Admin.Users.Components.LearnerFormComponent}
-    id={if @action == :new, do: "new", else: @learner.id}
+    id={if @action == :new, do: :new, else: @learner.id}
     action={@action}
     learner={@learner}
     parent_pid={self()}
+  />
+<% end %>
+
+<!-- Confirmation Modal -->
+<%= if @show_confirmation_modal do %>
+  <.live_component
+    module={SigneaseWeb.Components.ConfirmationModalComponent}
+    id="confirmation-modal"
+    title={if @confirmation_action == "delete", do: "Delete Learner", else: "Block Learner"}
+    message={if @confirmation_action == "delete", 
+      do: "Are you sure you want to delete #{@confirmation_params["user_name"]}? This action cannot be undone.", 
+      else: "Are you sure you want to block #{@confirmation_params["user_name"]}? They will not be able to access the system."}
+    confirm_text={if @confirmation_action == "delete", do: "Delete", else: "Block"}
+    action={@confirmation_action}
+    action_params={@confirmation_params}
   />
 <% end %> 

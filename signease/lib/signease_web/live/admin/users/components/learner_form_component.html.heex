@@ -46,7 +46,7 @@
             2
           </div>
           <span class={if @current_step >= 2, do: "text-sm font-medium text-gray-700", else: "text-sm font-medium text-gray-500"}>
-            Academic Background
+            Academic Information
           </span>
         </div>
 
@@ -170,31 +170,6 @@
               </div>
 
               <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Gender</label>
-                <select
-                  name="user[gender]"
-                  value={Ecto.Changeset.get_field(@changeset, :gender)}
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                >
-                  <option value="">Select gender</option>
-                  <option value="male" selected={Ecto.Changeset.get_field(@changeset, :gender) == "male"}>Male</option>
-                  <option value="female" selected={Ecto.Changeset.get_field(@changeset, :gender) == "female"}>Female</option>
-                  <option value="other" selected={Ecto.Changeset.get_field(@changeset, :gender) == "other"}>Other</option>
-                  <option value="prefer_not_to_say" selected={Ecto.Changeset.get_field(@changeset, :gender) == "prefer_not_to_say"}>Prefer not to say</option>
-                </select>
-              </div>
-
-              <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Date of Birth</label>
-                <input
-                  type="date"
-                  name="user[date_of_birth]"
-                  value={Ecto.Changeset.get_field(@changeset, :date_of_birth)}
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                />
-              </div>
-
-              <div class="space-y-1">
                 <label class="block text-xs font-medium text-gray-700">Email Address *</label>
                 <input
                   type="email"
@@ -225,35 +200,34 @@
               </div>
 
               <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">ID Type</label>
-                <select
-                  name="user[id_type]"
-                  value={Ecto.Changeset.get_field(@changeset, :id_type)}
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
-                >
-                  <option value="">Select ID type</option>
-                  <option value="national_id" selected={Ecto.Changeset.get_field(@changeset, :id_type) == "national_id"}>National ID</option>
-                  <option value="passport" selected={Ecto.Changeset.get_field(@changeset, :id_type) == "passport"}>Passport</option>
-                  <option value="drivers_license" selected={Ecto.Changeset.get_field(@changeset, :id_type) == "drivers_license"}>Driver's License</option>
-                  <option value="other" selected={Ecto.Changeset.get_field(@changeset, :id_type) == "other"}>Other</option>
-                </select>
+                <label class="block text-xs font-medium text-gray-700">Username *</label>
+                <input
+                  type="text"
+                  name="user[username]"
+                  value={Ecto.Changeset.get_field(@changeset, :username)}
+                  required
+                  class={if has_field_error?(@changeset, :username), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="Choose a username"
+                />
+                <%= if has_field_error?(@changeset, :username) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :username) %></p>
+                <% end %>
               </div>
 
               <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">ID Number</label>
+                <label class="block text-xs font-medium text-gray-700">Date of Birth</label>
                 <input
-                  type="text"
-                  name="user[id_no]"
-                  value={Ecto.Changeset.get_field(@changeset, :id_no)}
+                  type="date"
+                  name="user[date_of_birth]"
+                  value={Ecto.Changeset.get_field(@changeset, :date_of_birth)}
                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                  placeholder="Enter ID number"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Step 2: Academic Background -->
+        <!-- Step 2: Academic Information -->
         <div class={if @current_step == 2, do: "block", else: "hidden"}>
           <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
             <div class="flex items-center mb-4">
@@ -265,52 +239,72 @@
                 </div>
               </div>
               <div class="ml-2">
-                <h4 class="text-base font-semibold text-gray-900">Academic Background</h4>
-                <p class="text-xs text-gray-500">Educational qualifications and learning preferences</p>
+                <h4 class="text-base font-semibold text-gray-900">Academic Information</h4>
+                <p class="text-xs text-gray-500">Program details and enrollment information</p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Highest Education Level</label>
+                <label class="block text-xs font-medium text-gray-700">Program *</label>
                 <select
-                  name="user[education_level]"
-                  value={Ecto.Changeset.get_field(@changeset, :education_level)}
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"
+                  name="user[program]"
+                  value={Ecto.Changeset.get_field(@changeset, :program)}
+                  required
+                  class={if has_field_error?(@changeset, :program), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
                 >
-                  <option value="">Select education level</option>
-                  <option value="primary" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "primary"}>Primary School</option>
-                  <option value="secondary" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "secondary"}>Secondary School</option>
-                  <option value="high_school" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "high_school"}>High School</option>
-                  <option value="associate_degree" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "associate_degree"}>Associate Degree</option>
-                  <option value="bachelors" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "bachelors"}>Bachelor's Degree</option>
-                  <option value="masters" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "masters"}>Master's Degree</option>
-                  <option value="doctorate" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "doctorate"}>Doctorate</option>
-                  <option value="other" selected={Ecto.Changeset.get_field(@changeset, :education_level) == "other"}>Other</option>
+                  <option value="">Select program</option>
+                  <option value="Computer Science" selected={Ecto.Changeset.get_field(@changeset, :program) == "Computer Science"}>Computer Science</option>
+                  <option value="Mathematics" selected={Ecto.Changeset.get_field(@changeset, :program) == "Mathematics"}>Mathematics</option>
+                  <option value="Sign Language Studies" selected={Ecto.Changeset.get_field(@changeset, :program) == "Sign Language Studies"}>Sign Language Studies</option>
+                  <option value="Education" selected={Ecto.Changeset.get_field(@changeset, :program) == "Education"}>Education</option>
+                  <option value="Psychology" selected={Ecto.Changeset.get_field(@changeset, :program) == "Psychology"}>Psychology</option>
+                  <option value="Business Administration" selected={Ecto.Changeset.get_field(@changeset, :program) == "Business Administration"}>Business Administration</option>
+                  <option value="Engineering" selected={Ecto.Changeset.get_field(@changeset, :program) == "Engineering"}>Engineering</option>
+                  <option value="Arts and Humanities" selected={Ecto.Changeset.get_field(@changeset, :program) == "Arts and Humanities"}>Arts and Humanities</option>
+                  <option value="Other" selected={Ecto.Changeset.get_field(@changeset, :program) == "Other"}>Other</option>
                 </select>
+                <%= if has_field_error?(@changeset, :program) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :program) %></p>
+                <% end %>
               </div>
 
               <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Years of Experience</label>
-                <input
-                  type="number"
-                  name="user[years_experience]"
-                  value={Ecto.Changeset.get_field(@changeset, :years_experience)}
-                  min="0"
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
-                  placeholder="Enter years of experience"
-                />
+                <label class="block text-xs font-medium text-gray-700">Enrolled Year *</label>
+                <select
+                  name="user[enrolled_year]"
+                  value={Ecto.Changeset.get_field(@changeset, :enrolled_year)}
+                  required
+                  class={if has_field_error?(@changeset, :enrolled_year), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select year</option>
+                  <option value="2024" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2024}>2024</option>
+                  <option value="2025" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2025}>2025</option>
+                  <option value="2026" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2026}>2026</option>
+                  <option value="2027" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2027}>2027</option>
+                </select>
+                <%= if has_field_error?(@changeset, :enrolled_year) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :enrolled_year) %></p>
+                <% end %>
               </div>
 
-              <div class="md:col-span-2 space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Learning Preferences</label>
-                <textarea
-                  name="user[subjects_expertise]"
-                  value={Ecto.Changeset.get_field(@changeset, :subjects_expertise)}
-                  rows="2"
-                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
-                  placeholder="Enter your learning preferences and subjects of interest (e.g., Mathematics, Science, Sign Language, etc.)"
-                ></textarea>
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Semester *</label>
+                <select
+                  name="user[semester]"
+                  value={Ecto.Changeset.get_field(@changeset, :semester)}
+                  required
+                  class={if has_field_error?(@changeset, :semester), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select semester</option>
+                  <option value="Fall" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Fall"}>Fall</option>
+                  <option value="Spring" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Spring"}>Spring</option>
+                  <option value="Summer" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Summer"}>Summer</option>
+                  <option value="Winter" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Winter"}>Winter</option>
+                </select>
+                <%= if has_field_error?(@changeset, :semester) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :semester) %></p>
+                <% end %>
               </div>
             </div>
           </div>
@@ -329,26 +323,11 @@
               </div>
               <div class="ml-2">
                 <h4 class="text-base font-semibold text-gray-900">System Information</h4>
-                <p class="text-xs text-gray-500">Account credentials and system details</p>
+                <p class="text-xs text-gray-500">Accessibility and system preferences</p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Username *</label>
-                <input
-                  type="text"
-                  name="user[username]"
-                  value={Ecto.Changeset.get_field(@changeset, :username)}
-                  required
-                  class={if has_field_error?(@changeset, :username), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"}
-                  placeholder="Choose a username"
-                />
-                <%= if has_field_error?(@changeset, :username) do %>
-                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :username) %></p>
-                <% end %>
-              </div>
-
               <div class="space-y-1">
                 <label class="block text-xs font-medium text-gray-700">Hearing Status *</label>
                 <select

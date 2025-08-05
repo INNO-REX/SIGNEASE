@@ -29,11 +29,13 @@ import ApexCharts from "apexcharts"
 import ChartHooks from "./chart_hooks.js"
 import LoaderHooks from "./loader_hooks.js"
 import LiveSessions from "./live_sessions.js"
+import FlashHooks from "./flash_hooks.js"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let Hooks = {
   ...ChartHooks,
   ...LoaderHooks,
+  ...FlashHooks,
   
   // Side Navigation Dropdown Hook
   SideNavDropdown: {

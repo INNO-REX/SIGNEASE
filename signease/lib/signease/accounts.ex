@@ -626,6 +626,105 @@ defmodule Signease.Accounts do
   end
 
   @doc """
+  Blocks a user by ID.
+
+  ## Examples
+
+      iex> block_user(user_id, blocker_id)
+      {:ok, %User{}}
+
+  """
+  def block_user(user_id, blocker_id) when is_binary(user_id) do
+    block_user(user_id |> String.to_integer(), blocker_id)
+  end
+
+  def block_user(user_id, blocker_id) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> block_user(user, blocker_id)
+    end
+  end
+
+  @doc """
+  Checks if a user is a seed user (created by seeds and should be protected).
+
+  ## Examples
+
+      iex> is_seed_user?(user)
+      true
+
+  """
+  def is_seed_user?(%User{} = user) do
+    seed_emails = [
+      "superadmin@signease.com",
+      "admin@signease.com",
+      "instructor@signease.com",
+      "support@signease.com",
+      "learner@signease.com"
+    ]
+
+    user.email in seed_emails
+  end
+
+  @doc """
+  Blocks a user.
+
+  ## Examples
+
+      iex> block_user(user, blocker_id)
+      {:ok, %User{}}
+
+  """
+  def block_user(%User{} = user, blocker_id) do
+    user
+    |> User.status_changeset(%{
+      blocked: true,
+      status: "BLOCKED",
+      updated_by: blocker_id
+    })
+    |> Repo.update()
+  end
+
+  @doc """
+  Soft deletes a user by ID.
+
+  ## Examples
+
+      iex> soft_delete_user(user_id, deleter_id)
+      {:ok, %User{}}
+
+  """
+  def soft_delete_user(user_id, deleter_id) when is_binary(user_id) do
+    soft_delete_user(user_id |> String.to_integer(), deleter_id)
+  end
+
+  def soft_delete_user(user_id, deleter_id) when is_integer(user_id) do
+    case get_user(user_id) do
+      nil -> {:error, "User not found"}
+      user -> soft_delete_user(user, deleter_id)
+    end
+  end
+
+  @doc """
+  Soft deletes a user.
+
+  ## Examples
+
+      iex> soft_delete_user(user, deleter_id)
+      {:ok, %User{}}
+
+  """
+  def soft_delete_user(%User{} = user, deleter_id) do
+    user
+    |> User.status_changeset(%{
+      status: "DELETED",
+      deleted_by: deleter_id,
+      deleted_at: DateTime.utc_now()
+    })
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a user by ID.
 
   ## Examples

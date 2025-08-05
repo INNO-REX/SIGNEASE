@@ -105,7 +105,8 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
       "export_pdf" -> handle_export_pdf(socket, params)
@@ -150,6 +151,12 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
 
       :close_modal ->
         {:noreply, push_patch(socket, to: ~p"/admin/users")}
+
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
 
       _ -> {:noreply, socket}
     end
@@ -247,21 +254,53 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
     end
   end
 
+  defp handle_block_event(%{"id" => id}, socket) do
+    user = Accounts.get_user!(id)
+
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if user.id == 1 or Accounts.is_seed_user?(user) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(user, socket.assigns.current_user.id) do
+        {:ok, _user} ->
+          # Refresh the users list
+          send(self(), {:fetch_users, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "User blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block user: #{reason}")}
+      end
+    end
+  end
+
   defp handle_delete_event(%{"id" => id}, socket) do
     user = Accounts.get_user!(id)
 
-    case Accounts.delete_user(user, socket.assigns.current_user.id) do
-      {:ok, _user} ->
-        # Refresh the users list
-        send(self(), {:fetch_users, socket.assigns.params})
-        {:noreply,
-         socket
-         |> put_flash(:info, "User deleted successfully.")}
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if user.id == 1 or Accounts.is_seed_user?(user) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(user, socket.assigns.current_user.id) do
+        {:ok, _user} ->
+          # Refresh the users list
+          send(self(), {:fetch_users, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "User deleted successfully.")}
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete user: #{reason}")}
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete user: #{reason}")}
+      end
     end
   end
 
@@ -278,6 +317,48 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
         {:noreply,
          socket
          |> put_flash(:error, "Failed to reset password: #{reason}")}
+    end
+  end
+
+  # =============================================================================
+  # CONFIRMATION HANDLERS
+  # =============================================================================
+
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    user = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{user.first_name} #{user.last_name}"})}
+  end
+
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    user = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{user.first_name} #{user.last_name}"})}
+  end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
     end
   end
 
@@ -401,11 +482,14 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
   end
 
   defp apply_users_filters(query, filters) do
-    # If no filters, return the query as is
+    # Start with base query that excludes soft-deleted users and pending approval users
+    base_query = from(u in query, where: is_nil(u.deleted_at) and u.status != "PENDING_APPROVAL")
+
+    # If no filters, return the base query
     if map_size(filters) == 0 do
-      query
+      base_query
     else
-      Enum.reduce(filters, query, fn {key, value}, acc ->
+      Enum.reduce(filters, base_query, fn {key, value}, acc ->
         case {key, value} do
           {:search, search} when is_binary(search) and byte_size(search) > 0 ->
             search_term = "%#{search}%"
@@ -523,6 +607,9 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
     |> assign(:user, nil)
     |> assign(:action, nil)
     |> assign(:page, nil)
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_user_stats())
   end
 
@@ -571,13 +658,14 @@ defmodule SigneaseWeb.Admin.Users.AllUsers.UsersLive do
   end
 
   defp get_user_stats do
-    total_users = Repo.aggregate(User, :count, :id)
-    active_users = Repo.aggregate(from(u in User, where: u.status == "ACTIVE"), :count, :id)
-    pending_users = Repo.aggregate(from(u in User, where: u.status == "PENDING_APPROVAL"), :count, :id)
-    disabled_users = Repo.aggregate(from(u in User, where: u.status == "DISABLED"), :count, :id)
-    learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER"), :count, :id)
-    instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR"), :count, :id)
-    admins = Repo.aggregate(from(u in User, where: u.user_type == "ADMIN"), :count, :id)
+    # Exclude pending approval users from all counts
+    total_users = Repo.aggregate(from(u in User, where: is_nil(u.deleted_at) and u.status != "PENDING_APPROVAL"), :count, :id)
+    active_users = Repo.aggregate(from(u in User, where: u.status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_users = Repo.aggregate(from(u in User, where: u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    disabled_users = Repo.aggregate(from(u in User, where: u.status == "DISABLED" and is_nil(u.deleted_at)), :count, :id)
+    learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and is_nil(u.deleted_at) and u.status != "PENDING_APPROVAL"), :count, :id)
+    instructors = Repo.aggregate(from(u in User, where: u.user_type == "INSTRUCTOR" and is_nil(u.deleted_at) and u.status != "PENDING_APPROVAL"), :count, :id)
+    admins = Repo.aggregate(from(u in User, where: u.user_type == "ADMIN" and is_nil(u.deleted_at) and u.status != "PENDING_APPROVAL"), :count, :id)
 
     %{
       total_users: total_users,

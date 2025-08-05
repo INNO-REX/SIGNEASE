@@ -98,7 +98,8 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
       "export_pdf" -> handle_export_pdf(socket, params)
@@ -128,6 +129,10 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
          socket
          |> assign(:show_modal, false)
          |> assign(:learner, nil)}
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
       _ -> {:noreply, socket}
     end
   end
@@ -227,21 +232,53 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     end
   end
 
+  defp handle_block_event(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
+
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if learner.id == 1 or Accounts.is_seed_user?(learner) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(learner, socket.assigns.current_user.id) do
+        {:ok, _learner} ->
+          # Refresh the learners list
+          send(self(), {:fetch_learners, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Learner blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block learner: #{reason}")}
+      end
+    end
+  end
+
   defp handle_delete_event(%{"id" => id}, socket) do
     learner = Accounts.get_user!(id)
 
-    case Accounts.delete_user(learner, socket.assigns.current_user.id) do
-      {:ok, _learner} ->
-        # Refresh the learners list
-        send(self(), {:fetch_learners, socket.assigns.params})
-        {:noreply,
-         socket
-         |> put_flash(:info, "Learner deleted successfully.")}
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if learner.id == 1 or Accounts.is_seed_user?(learner) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(learner, socket.assigns.current_user.id) do
+        {:ok, _learner} ->
+          # Refresh the learners list
+          send(self(), {:fetch_learners, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Learner deleted successfully.")}
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete learner: #{reason}")}
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete learner: #{reason}")}
+      end
     end
   end
 
@@ -258,6 +295,48 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
         {:noreply,
          socket
          |> put_flash(:error, "Failed to reset password: #{reason}")}
+    end
+  end
+
+  # =============================================================================
+  # CONFIRMATION HANDLERS
+  # =============================================================================
+
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{learner.first_name} #{learner.last_name}"})}
+  end
+
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{learner.first_name} #{learner.last_name}"})}
+  end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
     end
   end
 
@@ -334,7 +413,7 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
 
   defp get_learners_with_pagination(page, per_page, sort_field, sort_direction) do
     User
-    |> where([u], u.user_type == "LEARNER")
+    |> where([u], u.user_type == "LEARNER" and is_nil(u.deleted_at))
     |> apply_learners_sorting(sort_field, sort_direction)
     |> limit(^per_page)
     |> offset(^((page - 1) * per_page))
@@ -343,7 +422,7 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
 
   defp get_learners_count() do
     User
-    |> where([u], u.user_type == "LEARNER")
+    |> where([u], u.user_type == "LEARNER" and is_nil(u.deleted_at))
     |> Repo.aggregate(:count, :id)
   end
 
@@ -403,6 +482,9 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     |> assign(:show_modal, false)
     |> assign(:learner, nil)
     |> assign(:action, nil)
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_learner_stats())
   end
 
@@ -451,11 +533,11 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
   end
 
   defp get_learner_stats do
-    total_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER"), :count, :id)
-    active_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "ACTIVE"), :count, :id)
-    pending_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "PENDING_APPROVAL"), :count, :id)
-    hearing_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "HEARING"), :count, :id)
-    deaf_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "DEAF"), :count, :id)
+    total_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and is_nil(u.deleted_at)), :count, :id)
+    active_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    hearing_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "HEARING" and is_nil(u.deleted_at)), :count, :id)
+    deaf_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "DEAF" and is_nil(u.deleted_at)), :count, :id)
 
     %{
       total_users: total_learners,

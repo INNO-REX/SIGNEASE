@@ -113,9 +113,10 @@ defmodule SigneaseWeb.CoreComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-hook="FlashHooks"
       role="alert"
       class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
+        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1 flash-message",
         @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
         @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
@@ -589,7 +590,25 @@ defmodule SigneaseWeb.CoreComponents do
     ~H"""
     <div class="relative inline-block text-left" x-data="{ open: false, dropdownStyle: '' }" x-init="open = false">
       <button
-        @click="open = !open; if(open) { const rect = $el.getBoundingClientRect(); dropdownStyle = 'left: ' + (rect.left + rect.width - 128) + 'px; top: ' + (rect.bottom + 4) + 'px;' }"
+        @click="open = !open; if(open) {
+          const rect = $el.getBoundingClientRect();
+          const dropdownHeight = 200; // Approximate dropdown height
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+
+          let top, left;
+          left = rect.left + rect.width - 128;
+
+          if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+            // Position below
+            top = rect.bottom + 4;
+          } else {
+            // Position above
+            top = rect.top - dropdownHeight - 4;
+          }
+
+          dropdownStyle = 'left: ' + left + 'px; top: ' + top + 'px;';
+        }"
         @click.away="open = false"
         type="button"
         class="inline-flex items-center px-2.5 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
@@ -608,7 +627,7 @@ defmodule SigneaseWeb.CoreComponents do
         x-transition:leave="transition ease-in duration-75"
         x-transition:leave-start="transform opacity-100 scale-100"
         x-transition:leave-end="transform opacity-0 scale-95"
-        class="fixed z-[99999] w-36 rounded-lg shadow-lg bg-white ring-1 ring-gray-200 border border-gray-100"
+        class="fixed z-[99999] w-32 rounded-lg shadow-lg bg-white ring-1 ring-gray-200 border border-gray-100 max-h-48 overflow-y-auto"
         x-bind:style="dropdownStyle"
         style="display: none;"
         role="menu"
@@ -616,7 +635,7 @@ defmodule SigneaseWeb.CoreComponents do
         aria-labelledby="menu-button"
         tabindex="-1"
       >
-        <div class="py-1" role="none">
+        <div class="py-0.5" role="none">
           <%= render_slot(@inner_block) %>
         </div>
       </div>
