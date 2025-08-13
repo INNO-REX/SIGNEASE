@@ -210,11 +210,22 @@ defmodule SigneaseWeb.Router do
     live "/accessibility-tools", AccessibilityTools.AccessibilityToolsLive # Accessibility features
     live "/communication", Communication.CommunicationLive    # Student communication tools
 
+    # Content & Calendar
+    # ------------------
+    live "/content", Content.ContentLive                      # Content library management
+    live "/calendar", Calendar.CalendarLive                   # Calendar and scheduling
+
     # Analytics & Reports
     # -------------------
     live "/analytics", Analytics.AnalyticsLive                # Course analytics and insights
     live "/reports", Reports.ReportsLive                      # Student progress reports
     live "/performance", Performance.PerformanceLive          # Teaching performance metrics
+
+    # Settings
+    # --------
+    live "/settings", Settings.SettingsLive                   # Lecturer settings and preferences
+
+
   end
 
   # ============================================================================

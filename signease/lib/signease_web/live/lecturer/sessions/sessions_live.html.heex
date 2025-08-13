@@ -1,4 +1,4 @@
-<.loader id="courses-loader" />
+<.loader id="sessions-loader" />
 
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
   <!-- Top Navigation Bar -->
@@ -6,7 +6,7 @@
 
   <div class="flex h-screen">
     <!-- Side Navigation -->
-    <.live_component module={SigneaseWeb.Lecturer.Components.SideNavComponent} id="side-nav" current_page="courses" stats={@stats} current_user={@current_user} />
+    <.live_component module={SigneaseWeb.Lecturer.Components.SideNavComponent} id="side-nav" current_page="sessions" stats={@stats} current_user={@current_user} />
     
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
@@ -16,16 +16,16 @@
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 class="text-3xl font-bold text-gray-900">
-                Course Management
+                Session Management
               </h1>
               <p class="mt-2 text-gray-600">
-                Create and manage your teaching courses and materials.
+                Manage and schedule your live teaching sessions.
               </p>
               <div class="mt-2 flex items-center gap-2">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                   Lecturer Panel
                 </span>
-                <span class="text-sm text-gray-500">• Course Management</span>
+                <span class="text-sm text-gray-500">• Session Management</span>
               </div>
             </div>
             
@@ -41,7 +41,7 @@
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Create Course
+                Create Session
               </button>
             </div>
           </div>
@@ -49,7 +49,7 @@
 
         <!-- Statistics Cards -->
         <div class="mb-8">
-          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="lecturer-courses-stats-cards" stats={@stats} />
+          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="lecturer-sessions-stats-cards" stats={@stats} />
         </div>
 
         <!-- Main Content Panel -->
@@ -57,9 +57,9 @@
           <div class="p-6">
             <div class="grid md:flex justify-between items-center px-4 mb-6">
               <div class="flex items-center space-x-4">
-                <h2 class="text-lg font-semibold text-gray-900">My Courses</h2>
+                <h2 class="text-lg font-semibold text-gray-900">My Sessions</h2>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  <%= length(@courses) %> courses
+                  <%= length(@sessions) %> sessions
                 </span>
               </div>
               
@@ -90,34 +90,34 @@
                   >
                     <div class="py-1">
                       <button
-                        phx-click="filter_courses"
+                        phx-click="filter_sessions"
                         phx-value-filters="all"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        All Courses
+                        All Sessions
                       </button>
                       <button
-                        phx-click="filter_courses"
-                        phx-value-filters="active"
+                        phx-click="filter_sessions"
+                        phx-value-filters="scheduled"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Active Courses
+                        Scheduled Sessions
                       </button>
                       <button
-                        phx-click="filter_courses"
-                        phx-value-filters="draft"
+                        phx-click="filter_sessions"
+                        phx-value-filters="ongoing"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                        Draft Courses
+                        Ongoing Sessions
                       </button>
                     </div>
                   </div>
@@ -125,27 +125,27 @@
               </div>
             </div>
 
-            <!-- Course List -->
+            <!-- Session List -->
             <div class="overflow-hidden">
-              <%= if Enum.empty?(@courses) do %>
+              <%= if Enum.empty?(@sessions) do %>
                 <div class="text-center py-12">
                   <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                   </svg>
-                  <h3 class="mt-2 text-sm font-medium text-gray-900">No courses yet</h3>
-                  <p class="mt-1 text-sm text-gray-500">Get started by creating your first course.</p>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">No sessions yet</h3>
+                  <p class="mt-1 text-sm text-gray-500">Get started by creating your first session.</p>
                   <div class="mt-6">
                     <button class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
-                      Create Course
+                      Create Session
                     </button>
                   </div>
                 </div>
               <% else %>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <%= for course <- @courses do %>
+                  <%= for session <- @sessions do %>
                     <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
                       <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -159,29 +159,25 @@
                             </div>
                             <div class="ml-3">
                               <h3 class="text-lg font-medium text-gray-900">
-                                <%= course.title || "Untitled Course" %>
+                                <%= session.title || "Untitled Session" %>
                               </h3>
                               <p class="text-sm text-gray-500">
-                                <%= course.description || "No description available" %>
+                                <%= session.description || "No description available" %>
                               </p>
                             </div>
                           </div>
-                          <span class={[
-                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            get_status_class(course.status || "DRAFT")
-                          ]}>
-                            <%= format_course_status(course.status || "DRAFT") %>
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <%= session.status || "SCHEDULED" %>
                           </span>
                         </div>
-                        
                         <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
-                          <span>Students: <%= course.student_count || 0 %></span>
-                          <span>Lessons: <%= course.lesson_count || 0 %></span>
+                          <span>Students: <%= session.student_count || 0 %></span>
+                          <span>Scheduled: <%= session.scheduled_at |> NaiveDateTime.to_string() %></span>
+                          <span>Duration: <%= session.duration_minutes %> min</span>
                         </div>
-                        
                         <div class="flex space-x-2">
                           <button class="flex-1 bg-purple-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-purple-700 transition-colors duration-200">
-                            View Course
+                            View Session
                           </button>
                           <button class="bg-gray-100 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors duration-200">
                             Edit
@@ -198,4 +194,4 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
