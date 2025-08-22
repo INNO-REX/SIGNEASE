@@ -19,14 +19,15 @@ defmodule SigneaseWeb.Lecturer.Settings.SettingsLive do
         else
           {:ok, assign(socket,
             current_user: user,
-            page_title: "Settings",
+            page_title: "Settings - SignEase",
             current_path: "/lecturer/settings",
             current_page: "settings",
             settings: get_user_settings(),
             stats: get_settings_stats(),
             show_password_modal: false,
             show_profile_modal: false,
-            show_profile_view: false
+            show_profile_view: false,
+            show_success_alert: false
           )}
         end
     end
@@ -80,11 +81,18 @@ defmodule SigneaseWeb.Lecturer.Settings.SettingsLive do
   end
 
   @impl true
+  def handle_event("dismiss_alert", _params, socket) do
+    {:noreply, assign(socket, show_success_alert: false)}
+  end
+
+  @impl true
   def handle_info({:profile_updated, updated_user}, socket) do
     {:noreply, 
      socket
      |> assign(:current_user, updated_user)
-     |> assign(:show_profile_modal, false)}
+     |> assign(:show_profile_modal, false)
+     |> put_flash(:info, "Profile updated successfully!")
+     |> assign(:show_success_alert, true)}
   end
 
   @impl true

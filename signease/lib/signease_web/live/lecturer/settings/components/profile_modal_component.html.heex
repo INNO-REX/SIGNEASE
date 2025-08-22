@@ -64,8 +64,6 @@
                   <option value="">Select gender</option>
                   <option value="male" selected={@changeset.changes[:gender] == "male" || @user.gender == "male"}>Male</option>
                   <option value="female" selected={@changeset.changes[:gender] == "female" || @user.gender == "female"}>Female</option>
-                  <option value="other" selected={@changeset.changes[:gender] == "other" || @user.gender == "other"}>Other</option>
-                  <option value="prefer_not_to_say" selected={@changeset.changes[:gender] == "prefer_not_to_say" || @user.gender == "prefer_not_to_say"}>Prefer not to say</option>
                 </select>
                 <%= if has_error?(@changeset, :gender) do %>
                   <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :gender) %></p>
