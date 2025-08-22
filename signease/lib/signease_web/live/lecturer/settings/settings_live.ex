@@ -1,20 +1,35 @@
 defmodule SigneaseWeb.Lecturer.Settings.SettingsLive do
   use SigneaseWeb, :live_view
 
+  alias Signease.Accounts
   import SigneaseWeb.Components.LoaderComponent
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket,
-      current_user: get_current_user(),
-      page_title: "Settings",
-      current_path: "/lecturer/settings",
-      current_page: "settings",
-      settings: get_user_settings(),
-      stats: get_settings_stats(),
-      show_password_modal: false,
-      show_profile_modal: false
-    )}
+  def mount(params, session, socket) do
+    # Get current user from session or URL params
+    current_user = get_current_user(session, params)
+
+    # Check if user exists and has lecturer permissions
+    case current_user do
+      nil ->
+        {:ok, push_navigate(socket, to: "/")}
+      user ->
+        unless has_lecturer_permission?(user) do
+          {:ok, push_navigate(socket, to: "/")}
+        else
+          {:ok, assign(socket,
+            current_user: user,
+            page_title: "Settings",
+            current_path: "/lecturer/settings",
+            current_page: "settings",
+            settings: get_user_settings(),
+            stats: get_settings_stats(),
+            show_password_modal: false,
+            show_profile_modal: false,
+            show_profile_view: false
+          )}
+        end
+    end
   end
 
   @impl true
@@ -50,36 +65,75 @@ defmodule SigneaseWeb.Lecturer.Settings.SettingsLive do
   end
 
   @impl true
+  def handle_event("show_profile_view", _params, socket) do
+    {:noreply, assign(socket, show_profile_view: true)}
+  end
+
+  @impl true
   def handle_event("close_profile_modal", _params, socket) do
     {:noreply, assign(socket, show_profile_modal: false)}
+  end
+
+  @impl true
+  def handle_event("close_profile_view", _params, socket) do
+    {:noreply, assign(socket, show_profile_view: false)}
+  end
+
+  @impl true
+  def handle_info({:profile_updated, updated_user}, socket) do
+    {:noreply, 
+     socket
+     |> assign(:current_user, updated_user)
+     |> assign(:show_profile_modal, false)}
+  end
+
+  @impl true
+  def handle_info(:close_profile_modal, socket) do
+    {:noreply, assign(socket, show_profile_modal: false)}
+  end
+
+  @impl true
+  def handle_info(:show_profile_view, socket) do
+    {:noreply, assign(socket, show_profile_view: true)}
+  end
+
+  @impl true
+  def handle_info(:close_profile_view, socket) do
+    {:noreply, assign(socket, show_profile_view: false)}
   end
 
   # =============================================================================
   # HELPER FUNCTIONS
   # =============================================================================
 
-  defp get_current_user do
-    %{
-      id: 1,
-      first_name: "John",
-      last_name: "Instructor",
-      email: "instructor@signease.com",
-      user_type: "INSTRUCTOR",
-      user_role: "TEACHER",
-      sign_language_skills: "beginner",
-      profile_picture: nil,
-      gender: "male",
-      phone: "123-456-7890",
-      status: "ACTIVE",
-      hearing_status: "HEARING",
-      preferred_language: "en",
-      education_level: "masters",
-      years_experience: 5,
-      subjects_expertise: "Computer Science, Accessibility",
-      program: nil,
-      enrolled_year: nil,
-      semester: nil
-    }
+  defp get_current_user(session, params) do
+    # Try to get user_id from URL params first, then from session
+    user_id = params["user_id"] || session["user_id"]
+
+    case user_id do
+      nil ->
+        # For development/testing, try to get a default instructor user
+        case Accounts.get_user_by_email("instructor@signease.com") do
+          nil -> nil
+          user -> user
+        end
+      user_id when is_binary(user_id) ->
+        case Accounts.get_user(user_id) do
+          nil -> nil
+          user -> user
+        end
+      user_id when is_integer(user_id) ->
+        case Accounts.get_user(user_id) do
+          nil -> nil
+          user -> user
+        end
+      _ -> nil
+    end
+  end
+
+  defp has_lecturer_permission?(user) do
+    # Check if user has lecturer permissions
+    user.user_type == "INSTRUCTOR" || user.user_role == "TEACHER"
   end
 
   defp get_user_settings do

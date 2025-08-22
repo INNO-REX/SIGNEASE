@@ -18,7 +18,7 @@ defmodule SigneaseWeb.Lecturer.Courses.CoursesLive do
       stats: get_course_stats(),
       filters: %{},
       selected_course: nil,
-      show_course_modal: false
+      show_course_modal: false,
     )}
   end
 
@@ -59,6 +59,7 @@ defmodule SigneaseWeb.Lecturer.Courses.CoursesLive do
     end
     {:noreply, assign(socket, courses: courses, filters: %{})}
   end
+
 
   # =============================================================================
   # HELPER FUNCTIONS

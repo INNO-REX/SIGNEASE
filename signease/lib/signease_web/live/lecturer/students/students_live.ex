@@ -14,7 +14,7 @@ defmodule SigneaseWeb.Lecturer.Students.StudentsLive do
       stats: get_student_stats(),
       filters: %{},
       selected_student: nil,
-      show_student_modal: false
+      show_student_modal: false,
     )}
   end
 
@@ -46,6 +46,7 @@ defmodule SigneaseWeb.Lecturer.Students.StudentsLive do
     students = get_students_for_lecturer(socket.assigns.current_user.id)
     {:noreply, assign(socket, students: students, filters: %{})}
   end
+
 
   # =============================================================================
   # HELPER FUNCTIONS

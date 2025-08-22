@@ -14,7 +14,7 @@ defmodule SigneaseWeb.Lecturer.Sessions.SessionsLive do
       stats: get_session_stats(),
       filters: %{},
       selected_session: nil,
-      show_session_modal: false
+      show_session_modal: false,
     )}
   end
 
@@ -46,6 +46,7 @@ defmodule SigneaseWeb.Lecturer.Sessions.SessionsLive do
     sessions = get_sessions_for_lecturer(socket.assigns.current_user.id)
     {:noreply, assign(socket, sessions: sessions, filters: %{})}
   end
+
 
   # =============================================================================
   # HELPER FUNCTIONS

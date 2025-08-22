@@ -1,0 +1,213 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="profile-modal">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-medium text-gray-900">Edit Profile</h3>
+        <button phx-click="close" phx-target={@myself} class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form phx-change="validate" phx-submit="save" phx-target={@myself}>
+        <div class="space-y-6">
+          <!-- Personal Information -->
+          <div>
+            <h4 class="text-md font-medium text-gray-900 mb-4">Personal Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <input type="text" name="user[first_name]" value={@changeset.changes[:first_name] || @user.first_name}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                       placeholder="Enter first name">
+                <%= if has_error?(@changeset, :first_name) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :first_name) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <input type="text" name="user[last_name]" value={@changeset.changes[:last_name] || @user.last_name}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                       placeholder="Enter last name">
+                <%= if has_error?(@changeset, :last_name) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :last_name) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" name="user[email]" value={@changeset.changes[:email] || @user.email}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                       placeholder="Enter email address">
+                <%= if has_error?(@changeset, :email) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :email) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input type="tel" name="user[phone]" value={@changeset.changes[:phone] || @user.phone}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                       placeholder="Enter phone number">
+                <%= if has_error?(@changeset, :phone) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :phone) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select name="user[gender]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                  <option value="">Select gender</option>
+                  <option value="male" selected={@changeset.changes[:gender] == "male" || @user.gender == "male"}>Male</option>
+                  <option value="female" selected={@changeset.changes[:gender] == "female" || @user.gender == "female"}>Female</option>
+                  <option value="other" selected={@changeset.changes[:gender] == "other" || @user.gender == "other"}>Other</option>
+                  <option value="prefer_not_to_say" selected={@changeset.changes[:gender] == "prefer_not_to_say" || @user.gender == "prefer_not_to_say"}>Prefer not to say</option>
+                </select>
+                <%= if has_error?(@changeset, :gender) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :gender) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                <input type="date" name="user[date_of_birth]" value={@changeset.changes[:date_of_birth] || @user.date_of_birth}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                <%= if has_error?(@changeset, :date_of_birth) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :date_of_birth) %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Information -->
+          <div>
+            <h4 class="text-md font-medium text-gray-900 mb-4">Professional Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Education Level</label>
+                <select name="user[education_level]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                  <option value="">Select education level</option>
+                  <option value="high_school" selected={@changeset.changes[:education_level] == "high_school" || @user.education_level == "high_school"}>High School</option>
+                  <option value="associate_degree" selected={@changeset.changes[:education_level] == "associate_degree" || @user.education_level == "associate_degree"}>Associate Degree</option>
+                  <option value="bachelors" selected={@changeset.changes[:education_level] == "bachelors" || @user.education_level == "bachelors"}>Bachelor's Degree</option>
+                  <option value="masters" selected={@changeset.changes[:education_level] == "masters" || @user.education_level == "masters"}>Master's Degree</option>
+                  <option value="doctorate" selected={@changeset.changes[:education_level] == "doctorate" || @user.education_level == "doctorate"}>Doctorate</option>
+                  <option value="other" selected={@changeset.changes[:education_level] == "other" || @user.education_level == "other"}>Other</option>
+                </select>
+                <%= if has_error?(@changeset, :education_level) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :education_level) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                <input type="number" name="user[years_experience]" value={@changeset.changes[:years_experience] || @user.years_experience}
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                       placeholder="Enter years of experience" min="0" max="50">
+                <%= if has_error?(@changeset, :years_experience) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :years_experience) %></p>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Subjects Expertise</label>
+              <textarea name="user[subjects_expertise]" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="Enter your areas of expertise (e.g., Computer Science, Mathematics, Sign Language)"><%= @changeset.changes[:subjects_expertise] || @user.subjects_expertise %></textarea>
+              <%= if has_error?(@changeset, :subjects_expertise) do %>
+                <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :subjects_expertise) %></p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Accessibility Information -->
+          <div>
+            <h4 class="text-md font-medium text-gray-900 mb-4">Accessibility Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hearing Status</label>
+                <select name="user[hearing_status]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                  <option value="">Select hearing status</option>
+                  <option value="HEARING" selected={@changeset.changes[:hearing_status] == "HEARING" || @user.hearing_status == "HEARING"}>Hearing</option>
+                  <option value="DEAF" selected={@changeset.changes[:hearing_status] == "DEAF" || @user.hearing_status == "DEAF"}>Deaf</option>
+                  <option value="HARD_OF_HEARING" selected={@changeset.changes[:hearing_status] == "HARD_OF_HEARING" || @user.hearing_status == "HARD_OF_HEARING"}>Hard of Hearing</option>
+                </select>
+                <%= if has_error?(@changeset, :hearing_status) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :hearing_status) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sign Language Skills</label>
+                <select name="user[sign_language_skills]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                  <option value="">Select skill level</option>
+                  <option value="BEGINNER" selected={@changeset.changes[:sign_language_skills] == "BEGINNER" || @user.sign_language_skills == "BEGINNER"}>Beginner</option>
+                  <option value="INTERMEDIATE" selected={@changeset.changes[:sign_language_skills] == "INTERMEDIATE" || @user.sign_language_skills == "INTERMEDIATE"}>Intermediate</option>
+                  <option value="ADVANCED" selected={@changeset.changes[:sign_language_skills] == "ADVANCED" || @user.sign_language_skills == "ADVANCED"}>Advanced</option>
+                  <option value="FLUENT" selected={@changeset.changes[:sign_language_skills] == "FLUENT" || @user.sign_language_skills == "FLUENT"}>Fluent</option>
+                </select>
+                <%= if has_error?(@changeset, :sign_language_skills) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :sign_language_skills) %></p>
+                <% end %>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
+                <select name="user[preferred_language]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                  <option value="en" selected={@changeset.changes[:preferred_language] == "en" || @user.preferred_language == "en"}>English</option>
+                  <option value="es" selected={@changeset.changes[:preferred_language] == "es" || @user.preferred_language == "es"}>Spanish</option>
+                  <option value="fr" selected={@changeset.changes[:preferred_language] == "fr" || @user.preferred_language == "fr"}>French</option>
+                </select>
+                <%= if has_error?(@changeset, :preferred_language) do %>
+                  <p class="mt-1 text-sm text-red-600"><%= get_error(@changeset, :preferred_language) %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Validation Errors -->
+          <%= if @show_errors && length(@validation_errors) > 0 do %>
+            <div class="bg-red-50 border border-red-200 rounded-md p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-red-800">There were errors with your submission</h3>
+                  <div class="mt-2 text-sm text-red-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                      <%= for {field, errors} <- @validation_errors do %>
+                        <%= for error <- List.wrap(errors) do %>
+                          <li><%= String.capitalize(String.replace(field, "_", " ")) %>: <%= error %></li>
+                        <% end %>
+                      <% end %>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+            <button type="button" phx-click="close" phx-target={@myself}
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+              Cancel
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

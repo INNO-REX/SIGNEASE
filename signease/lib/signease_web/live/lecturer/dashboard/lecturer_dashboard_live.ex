@@ -26,8 +26,8 @@ defmodule SigneaseWeb.Lecturer.Dashboard.LecturerDashboardLive do
             recent_activities: get_lecturer_activities(user),
             student_progress: get_student_progress(user),
             course_analytics: get_course_analytics(user),
-            pending_requests: get_pending_requests(user)
-          )
+            pending_requests: get_pending_requests(user),
+                )
 
           {:ok, socket}
         end
@@ -54,6 +54,7 @@ defmodule SigneaseWeb.Lecturer.Dashboard.LecturerDashboardLive do
     {:noreply, push_navigate(socket, to: "/lecturer/courses")}
   end
 
+
   # Private functions
 
   defp get_current_user(session, params) do
@@ -62,17 +63,22 @@ defmodule SigneaseWeb.Lecturer.Dashboard.LecturerDashboardLive do
 
     case user_id do
       nil ->
-        # Redirect to home if no user_id provided
-        nil
-      user_id ->
-        case Accounts.get_user(user_id) do
-          nil ->
-            # Redirect to home if user not found
-            nil
-          user ->
-            # Return the actual user from database
-            user
+        # For development/testing, try to get a default instructor user
+        case Accounts.get_user_by_email("instructor@signease.com") do
+          nil -> nil
+          user -> user
         end
+      user_id when is_binary(user_id) ->
+        case Accounts.get_user(user_id) do
+          nil -> nil
+          user -> user
+        end
+      user_id when is_integer(user_id) ->
+        case Accounts.get_user(user_id) do
+          nil -> nil
+          user -> user
+        end
+      _ -> nil
     end
   end
 

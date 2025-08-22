@@ -96,7 +96,7 @@ defmodule SigneaseWeb.Lecturer.Components.TopNavComponent do
 
   @impl true
   def handle_event("navigate-to-profile", _params, socket) do
-    # TODO: Navigate to profile page
+    # TODO: Add profile navigation functionality
     {:noreply, socket}
   end
 
