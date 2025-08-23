@@ -421,6 +421,22 @@ defmodule Signease.Accounts do
   end
 
   @doc """
+  Gets all users by user type.
+
+  ## Examples
+
+      iex> list_users_by_type("INSTRUCTOR")
+      [%User{}, ...]
+
+  """
+  def list_users_by_type(user_type) when is_binary(user_type) do
+    User
+    |> where([u], u.user_type == ^user_type)
+    |> order_by([u], [u.first_name, u.last_name])
+    |> Repo.all()
+  end
+
+  @doc """
   Gets all pending approval users.
 
   ## Examples

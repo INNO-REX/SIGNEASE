@@ -131,6 +131,13 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
                    x-transition:leave-start="opacity-100 transform translate-y-0"
                    x-transition:leave-end="opacity-0 transform -translate-y-2"
                    class="ml-4 space-y-1 overflow-hidden" style="display: none;">
+                <button @click="handleButtonClick('learning-management')" phx-click="navigate-to-programs" phx-target={@myself}
+                        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
+                  <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                  Programs
+                </button>
                 <button @click="handleButtonClick('learning-management')" phx-click="navigate-to-courses" phx-target={@myself}
                         class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 hover:bg-gray-700 hover:text-white transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg">
                   <svg class="mr-3 flex-shrink-0 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -529,9 +536,13 @@ defmodule SigneaseWeb.Admin.Components.SideNavComponent do
     {:noreply, push_navigate(socket, to: "/admin/notifications/sms-logs")}
   end
 
-  # Learning Management Events (Not yet implemented)
+  # Learning Management Events
+  def handle_event("navigate-to-programs", _params, socket) do
+    {:noreply, push_navigate(socket, to: "/admin/programs")}
+  end
+
   def handle_event("navigate-to-courses", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Course Management - Coming Soon! This feature is currently under development.")}
+    {:noreply, push_navigate(socket, to: "/admin/courses")}
   end
 
   def handle_event("navigate-to-lessons", _params, socket) do
