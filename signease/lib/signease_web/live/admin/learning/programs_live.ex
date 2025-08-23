@@ -21,7 +21,7 @@ defmodule SigneaseWeb.Admin.Learning.ProgramsLive do
 
     {:ok, socket}
   end
-  
+
   defp assign_initial_state(socket) do
     socket
     |> assign(:current_path, "/admin/programs")

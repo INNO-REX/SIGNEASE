@@ -73,7 +73,7 @@ defmodule Signease.Seeds.SetLearning do
 
     programs = Enum.map(program_data, fn program_attrs ->
       program_attrs = Map.put(program_attrs, :created_by, admin_id)
-      
+
       case Repo.get_by(Learning.Program, code: program_attrs.code) do
         nil ->
           case Learning.create_program(program_attrs) do
@@ -194,7 +194,7 @@ defmodule Signease.Seeds.SetLearning do
         created_by: admin_id,
         status: "ACTIVE"
       })
-      
+
       case Repo.get_by(Learning.Course, code: course_attrs.code) do
         nil ->
           case Learning.create_course(course_attrs) do

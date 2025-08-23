@@ -291,7 +291,7 @@ defmodule Signease.Learning do
       :program ->
         get_program_enrollment!(enrollment_id)
         |> update_program_enrollment(%{progress_percentage: progress_percentage, updated_by: user_id})
-      
+
       :course ->
         get_course_enrollment!(enrollment_id)
         |> update_course_enrollment(%{progress_percentage: progress_percentage, updated_by: user_id})
