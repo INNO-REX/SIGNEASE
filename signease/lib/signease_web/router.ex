@@ -105,6 +105,7 @@ defmodule SigneaseWeb.Router do
 
     # Learning Content Management
     # ---------------------------
+    live "/programs", Learning.ProgramsLive                   # Program management
     live "/courses", Learning.CoursesLive                     # Course management
     live "/lessons", Learning.LessonsLive                     # Lesson management
     live "/sign-language", Learning.SignLanguageLive          # Sign language content
