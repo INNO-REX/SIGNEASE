@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :signease, Signease.Repo,
   username: "postgres",
-  password: "32211",
+  password: "123456",
   hostname: "localhost",
   database: "signease_dev",
   stacktrace: true,
