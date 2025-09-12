@@ -1,11 +1,14 @@
 defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
   use SigneaseWeb, :live_view
   alias SigneaseWeb.RouteHelpers
+  alias Signease.Accounts
+  alias WhisperElixir
 
   @impl true
   def mount(_params, _session, socket) do
     # Get current user from session or assign a mock user for development
     current_user = get_current_user()
+    IO.inspect(socket, label: "socket")
 
     socket = assign(socket,
       current_user: current_user,
@@ -14,6 +17,7 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
       transcription_text: "",
       transcribed_lines: [],
       session_active: false,
+      current_speaker: " ",
       class_questions: [],
       animation_enabled: false,
       accessibility_settings: %{
@@ -23,10 +27,14 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
       },
       session_stats: %{
         words_transcribed: 0,
-        accuracy: 98.5,
+        accuracy: 9.5,
         session_duration: 0,
         questions_asked: 0
-      }
+      },
+      # New assigns for audio handling
+      audio_chunks: [],
+      session_timer_ref: nil,
+      transcription_processing: false
     )
 
     {:ok, socket}
@@ -35,19 +43,126 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
   @impl true
   def handle_event("toggle-recording", _params, socket) do
     is_recording = !socket.assigns.is_recording
+    user = socket.assigns.current_user
+
+    current_speaker =
+      if user.user_type == "LEARNER" do
+        "#{user.first_name} #{user.last_name}"
+      else
+        "Instructor"
+      end
 
     socket = if is_recording do
       # Start recording
+      IO.puts("🎤 Starting recording for user: #{current_speaker}")
       socket
-      |> assign(is_recording: true, session_active: true)
+      |> assign(%{
+        is_recording: true,
+        session_active: true,
+        current_speaker: current_speaker,
+        audio_chunks: [],
+        transcription_processing: false
+      })
       |> push_event("start-recording", %{})
       |> start_session_timer()
     else
-      # Stop recording
+      # Stop recording and process audio
+      IO.puts("🛑 Stopping recording")
       socket
       |> assign(is_recording: false)
       |> push_event("stop-recording", %{})
       |> stop_session_timer()
+    end
+
+    {:noreply, socket}
+  end
+
+  # Handle audio data chunks from frontend
+  @impl true
+  def handle_event("audio-chunk", %{"audio_data" => audio_base64}, socket) do
+    # Store audio chunks for later processing
+    audio_chunks = [audio_base64 | socket.assigns.audio_chunks]
+
+    socket = assign(socket, audio_chunks: audio_chunks)
+
+    {:noreply, socket}
+  end
+
+  # Handle final audio data for transcription
+  @impl true
+  def handle_event("audio-recorded", %{"audio" => audio_base64}, socket) do
+    IO.puts("🎵 Received audio data from frontend")
+    IO.puts("🎵 Audio data size: #{String.length(audio_base64)} characters")
+
+    socket =
+      socket
+      |> assign(audio_chunks: [audio_base64 | socket.assigns.audio_chunks])
+      |> process_recorded_audio()
+
+    {:noreply, socket}
+  end
+
+  # Handle recording errors
+  @impl true
+  def handle_event("recording-error", %{"error" => error_message}, socket) do
+    IO.puts("❌ Recording error: #{error_message}")
+
+    socket = socket
+    |> assign(%{
+      is_recording: false,
+      session_active: false,
+      transcription_processing: false
+    })
+    |> put_flash(:error, "Recording failed: #{error_message}")
+
+    {:noreply, socket}
+  end
+
+  # Handle interim transcription results (real-time)
+  @impl true
+  def handle_event("interim-transcription", %{"text" => text}, socket) do
+    IO.puts("📝 Interim transcription: #{text}")
+
+    # Update the current transcription text for real-time display
+    socket = socket
+    |> assign(transcription_text: text)
+    |> push_event("update-current-transcription", %{text: text})
+
+    {:noreply, socket}
+  end
+
+  # Handle final transcription results from browser speech recognition
+  @impl true
+  def handle_event("final-transcription", %{"text" => text, "confidence" => confidence, "language" => language}, socket) do
+    IO.puts("🎉 Final transcription from browser: #{text}")
+
+    # Create new transcribed line
+    new_line = %{
+      id: System.unique_integer([:positive]),
+      text: text,
+      timestamp: DateTime.utc_now(),
+      speaker: socket.assigns.current_speaker,
+      language: language,
+      confidence: confidence
+    }
+
+    lines = [new_line | socket.assigns.transcribed_lines]
+    words_count = socket.assigns.session_stats.words_transcribed + (String.split(text, " ") |> length())
+
+    socket =
+      socket
+      |> assign(%{
+        transcription_text: "", # Clear interim text
+        transcribed_lines: lines,
+        transcription_processing: false,
+        session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
+      })
+      |> push_event("transcription-update", %{transcription: new_line})
+      |> push_event("clear-current-transcription", %{}) # Clear the interim display
+
+    # Update animation if enabled
+    if socket.assigns.animation_enabled do
+      socket = push_event(socket, "update-animation", %{text: text})
     end
 
     {:noreply, socket}
@@ -99,7 +214,7 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
         id: System.unique_integer([:positive]),
         text: text,
         timestamp: DateTime.utc_now(),
-        speaker: "Instructor"
+        speaker: socket.assigns.current_speaker
       } | socket.assigns.transcribed_lines]
     else
       socket.assigns.transcribed_lines
@@ -112,6 +227,11 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
       transcribed_lines: lines,
       session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
     )
+
+    # If animation is enabled, update it with new text
+    if socket.assigns.animation_enabled do
+      socket = push_event(socket, "update-animation", %{text: text})
+    end
 
     {:noreply, socket}
   end
@@ -144,6 +264,76 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
     {:noreply, socket}
   end
 
+    # Handle real-time transcription results from Whisper
+  @impl true
+  def handle_info({:transcription_result, result}, socket) do
+    IO.puts("📨 Received transcription result in handle_info")
+    IO.puts("📨 Result text: \"#{result.text}\"")
+    IO.inspect(result, label: "Transcription result received")
+
+    # Create new transcribed line
+    new_line = %{
+      id: System.unique_integer([:positive]),
+      text: result.text,
+      timestamp: DateTime.utc_now(),
+      speaker: socket.assigns.current_speaker,
+      language: result.language,
+      confidence: Map.get(result, :confidence, 0.0)
+    }
+
+    lines = [new_line | socket.assigns.transcribed_lines]
+    words_count = socket.assigns.session_stats.words_transcribed + (String.split(result.text, " ") |> length())
+
+    IO.puts("📝 Adding transcription to UI: \"#{result.text}\"")
+
+    socket =
+      socket
+      |> assign(%{
+        transcription_text: result.text,
+        transcribed_lines: lines,
+        transcription_processing: false,
+        session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
+      })
+      |> push_event("transcription-update", %{transcription: new_line})
+
+    # Update animation if enabled
+    if socket.assigns.animation_enabled do
+      socket = push_event(socket, "update-animation", %{text: result.text})
+    end
+
+    IO.puts("✅ Transcription result processed and sent to UI")
+    {:noreply, socket}
+  end
+
+  # Handle transcription errors
+  @impl true
+  def handle_info({:transcription_error, error}, socket) do
+    IO.inspect(error, label: "Transcription error in handle_info")
+
+    socket =
+      socket
+      |> assign(transcription_processing: false)
+      |> put_flash(:error, "Transcription failed: #{error}")
+
+    {:noreply, socket}
+  end
+
+  # Handle session timeout
+  @impl true
+  def handle_info(:session_timeout, socket) do
+    socket =
+      socket
+      |> assign(%{
+        is_recording: false,
+        session_active: false,
+        transcription_processing: false
+      })
+      |> push_event("stop-recording", %{})
+      |> put_flash(:info, "Recording session ended due to timeout")
+
+    {:noreply, socket}
+  end
+
   @impl true
   def handle_info(:update_session_timer, socket) do
     if socket.assigns.session_active do
@@ -168,8 +358,8 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
     # Mock user for development - replace with actual user from session
     %{
       id: 1,
-      first_name: "Alex",
-      last_name: "Johnson",
+      first_name: "Jonas",
+      last_name: "Jr",
       email: "alex@example.com",
       user_type: "LEARNER",
       sign_language_skills: "INTERMEDIATE",
@@ -178,15 +368,89 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
   end
 
   defp start_session_timer(socket) do
+    # Start session duration timer
     Process.send_after(self(), :update_session_timer, 1000)
-    socket
+
+    # Auto-stop recording after 10 minutes to prevent excessive usage
+    timer_ref = Process.send_after(self(), :session_timeout, 10 * 60 * 1000)
+
+    assign(socket, session_timer_ref: timer_ref)
   end
 
   defp stop_session_timer(socket) do
-    socket
+    if socket.assigns.session_timer_ref do
+      Process.cancel_timer(socket.assigns.session_timer_ref)
+    end
+    assign(socket, session_timer_ref: nil)
   end
 
-  defp format_duration(seconds) do
+  defp process_recorded_audio(socket) do
+    audio_chunks = socket.assigns.audio_chunks |> Enum.reverse()
+    IO.puts("🎵 Processing #{length(audio_chunks)} audio chunks...")
+
+    if length(audio_chunks) > 0 do
+      IO.puts("🚀 Starting transcription process...")
+
+      # Set processing state
+      socket = assign(socket, transcription_processing: true)
+
+      # Use the most recent audio chunk (the complete recording)
+      latest_audio = List.first(audio_chunks)
+      IO.puts("📊 Processing latest audio chunk: #{String.length(latest_audio)} characters")
+
+      # Process transcription asynchronously to avoid blocking UI
+      liveview_pid = self()
+      Task.start(fn ->
+        IO.puts("🔄 Task started - attempting transcription...")
+
+        # Check if Google Speech API key is available
+        api_key = System.get_env("GOOGLE_SPEECH_API_KEY")
+
+        if is_nil(api_key) do
+          IO.puts("⚠️ No Google Speech API key found, audio transcription not available")
+          IO.puts("💡 Please use browser speech recognition for real-time transcription")
+          # Don't process audio - let browser speech recognition handle it
+          send(liveview_pid, {:transcription_error, "Audio transcription not available - use browser speech recognition"})
+        else
+          IO.puts("🔑 Google Speech API key found, attempting real transcription")
+          # Try Google Speech API first, fallback to Whisper if needed
+          case GoogleSpeech.transcribe_base64(latest_audio, [
+            language_code: "en-US"  # You can make this configurable
+          ]) do
+            {:ok, result} ->
+              IO.puts("🎉 Google Speech transcription successful!")
+              IO.inspect(result, label: "Transcription result")
+              IO.puts("📤 Sending transcription_result message to LiveView...")
+              send(liveview_pid, {:transcription_result, result})
+              IO.puts("📤 Message sent!")
+            {:error, error} ->
+              IO.puts("❌ Google Speech failed, trying Whisper...")
+              IO.inspect(error, label: "Google Speech error")
+
+              # Fallback to Whisper
+              case WhisperElixir.transcribe_base64(latest_audio, []) do
+                {:ok, result} ->
+                  IO.puts("🎉 Whisper transcription successful!")
+                  IO.inspect(result, label: "Whisper result")
+                  send(liveview_pid, {:transcription_result, result})
+                {:error, whisper_error} ->
+                  IO.puts("❌ Both transcription services failed!")
+                  IO.inspect(whisper_error, label: "Whisper error")
+                  send(liveview_pid, {:transcription_error, "All transcription services failed"})
+              end
+          end
+        end
+      end)
+
+      socket
+    else
+      IO.puts("⚠️ No audio chunks to process")
+      socket
+    end
+    |> assign(audio_chunks: [])
+  end
+
+  def format_duration(seconds) do
     minutes = div(seconds, 60)
     remaining_seconds = rem(seconds, 60)
     "#{String.pad_leading("#{minutes}", 2, "0")}:#{String.pad_leading("#{remaining_seconds}", 2, "0")}"

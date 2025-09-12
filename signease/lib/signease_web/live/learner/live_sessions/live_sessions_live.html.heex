@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" >
   <!-- Top Navigation Bar -->
   <.live_component module={SigneaseWeb.Learner.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
 
@@ -55,20 +55,23 @@
             <div class="flex justify-center mb-6">
               <button 
                 phx-click="toggle-recording"
+                phx-hook="AudioRecorder" id="AudioRecorder"
                 class={[
                   "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-offset-2",
                   @is_recording && "bg-red-500 hover:bg-red-600 focus:ring-red-500 shadow-lg",
                   !@is_recording && "bg-indigo-500 hover:bg-indigo-600 focus:ring-indigo-500 shadow-md"
                 ]}
               >
-                <div class="absolute inset-0 rounded-full bg-white opacity-20 animate-ping"></div>
+                <%= if @is_recording do %>
+                  <div class="absolute inset-0 rounded-full bg-white opacity-20 animate-ping"></div>
+                <% end %>
                 <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <%= if @is_recording do %>
                     <!-- Stop Icon -->
                     <path d="M6 6h12v12H6z"/>
                   <% else %>
-                    <!-- Play Icon -->
-                    <path d="M8 5v14l11-7z"/>
+                    <!-- Microphone Icon -->
+                    <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
                   <% end %>
                 </svg>
               </button>
@@ -77,12 +80,30 @@
             <!-- Recording Status -->
             <div class="text-center">
               <p class="text-sm font-medium text-gray-700">
-                <%= if @is_recording do %>
-                  Recording in progress...
-                <% else %>
-                  Click to start recording
+                <%= cond do %>
+                  <% @transcription_processing -> %>
+                    <span class="flex items-center justify-center space-x-2">
+                      <svg class="animate-spin h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Processing transcription...</span>
+                    </span>
+                  <% @is_recording -> %>
+                    <span class="flex items-center justify-center space-x-2">
+                      <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span>Recording in progress...</span>
+                    </span>
+                  <% true -> %>
+                    Click to start recording
                 <% end %>
               </p>
+              
+              <%= if @current_speaker != " " and @session_active do %>
+                <p class="text-xs text-gray-500 mt-1">
+                  Speaker: <span class="font-medium"><%= @current_speaker %></span>
+                </p>
+              <% end %>
             </div>
           </div>
 
@@ -193,6 +214,8 @@
               <h3 class="text-lg font-semibold text-gray-900">Live Transcription</h3>
               
               <div class="flex items-center space-x-3">
+                <!-- Processing Indicator -->
+
                 <!-- Animation Toggle -->
                 <button 
                   phx-click="toggle-animation"
@@ -242,13 +265,21 @@
                     </div>
                     <div class="flex-1">
                       <div class="flex items-center space-x-2 mb-1">
-                        <span class="text-sm font-medium text-indigo-700">Instructor</span>
-                        <span class="text-xs text-gray-500">Live</span>
-                        <%= if @is_recording do %>
-                          <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium text-indigo-700">
+                          <%= if @current_speaker != " " do %>
+                            <%= @current_speaker %>
+                          <% else %>
+                            Instructor
+                          <% end %>
+                        </span>
+                        <%= if @session_active do %>
+                          <span class="text-xs text-gray-500">Live</span>
+                          <%= if @is_recording do %>
+                            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <% end %>
                         <% end %>
                       </div>
-                      <p class={[
+                      <p id="current-transcription" class={[
                         "text-gray-900 leading-relaxed",
                         @accessibility_settings.large_text && "text-lg",
                         !@accessibility_settings.large_text && "text-base"
@@ -256,7 +287,13 @@
                         <%= if @transcription_text != "" do %>
                           <%= @transcription_text %>
                         <% else %>
-                          <span class="text-gray-400 italic">Waiting for speech input...</span>
+                          <span class="text-gray-400 italic">
+                            <%= if @transcription_processing do %>
+                              Processing your speech...
+                            <% else %>
+                              Waiting for speech input...
+                            <% end %>
+                          </span>
                         <% end %>
                       </p>
                     </div>
@@ -282,6 +319,11 @@
                           <span class="text-xs text-gray-400">
                             <%= Calendar.strftime(line.timestamp, "%H:%M:%S") %>
                           </span>
+                          <%= if Map.has_key?(line, :language) and line.language != "unknown" do %>
+                            <span class="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 rounded">
+                              <%= line.language %>
+                            </span>
+                          <% end %>
                         </div>
                         <p class={[
                           "text-gray-800 leading-relaxed",
@@ -422,38 +464,4 @@
   </div>
 </div>
 
-<!-- JavaScript for real-time transcription simulation -->
-<script>
-  window.addEventListener('phx:update', () => {
-    // Simulate real-time transcription updates
-    if (window.transcriptionInterval) {
-      clearInterval(window.transcriptionInterval);
-    }
-    
-    const isRecording = document.querySelector('[phx-click="toggle-recording"]')?.classList.contains('bg-red-500');
-    
-    if (isRecording) {
-      const sampleTexts = [
-        "Welcome to today's sign language lesson.",
-        "We'll be learning basic greetings today.",
-        "Let's start with the sign for 'hello'.",
-        "Make sure to follow along with the hand movements.",
-        "This is an important foundation for your learning journey.",
-        "Practice makes perfect, so don't be afraid to make mistakes.",
-        "Remember to maintain eye contact during conversations.",
-        "The facial expressions are just as important as the hand signs."
-      ];
-      
-      let currentIndex = 0;
-      
-      window.transcriptionInterval = setInterval(() => {
-        if (currentIndex < sampleTexts.length) {
-          window.liveSocket.execJS(document, "update-transcription", {text: sampleTexts[currentIndex]});
-          currentIndex++;
-        } else {
-          clearInterval(window.transcriptionInterval);
-        }
-      }, 3000);
-    }
-  });
-</script> 
+<!-- LiveView will handle transcription updates through the JavaScript hooks --> 
