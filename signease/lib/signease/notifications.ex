@@ -427,4 +427,146 @@ defmodule Signease.Notifications do
   def delete_email_notification(%Email{} = email) do
     Repo.delete(email)
   end
+
+  @doc """
+  Sends approval notification to user.
+  """
+  def send_approval_notification(user) do
+    notification_params = %{
+      title: "SignEase - Account Approved",
+      message: "Congratulations! Your SignEase account has been approved. You can now access all features.",
+      notification_type: "ACCOUNT_UPDATE",
+      priority: "MEDIUM",
+      status: "ACTIVE",
+      target_audience: "LEARNER",
+      delivery_channels: "in_app,email",
+      created_by_id: 1, # System admin
+      metadata: Jason.encode!(%{user_id: user.id, username: user.username})
+    }
+
+    case create_notification(notification_params) do
+      {:ok, notification} ->
+        IO.puts("✅ Approval notification created with ID: #{notification.id}")
+        # Send email notification
+        send_approval_email(user, notification)
+        {:ok, notification}
+      {:error, changeset} ->
+        IO.puts("❌ Approval notification creation error: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
+  end
+
+  @doc """
+  Sends rejection notification to user.
+  """
+  def send_rejection_notification(user, reason) do
+    notification_params = %{
+      title: "SignEase - Account Application Update",
+      message: "Your account application has been reviewed. Unfortunately, it was not approved at this time.",
+      notification_type: "ACCOUNT_UPDATE",
+      priority: "MEDIUM",
+      status: "ACTIVE",
+      target_audience: "LEARNER",
+      delivery_channels: "in_app,email",
+      created_by_id: 1, # System admin
+      metadata: Jason.encode!(%{user_id: user.id, username: user.username, reason: reason})
+    }
+
+    case create_notification(notification_params) do
+      {:ok, notification} ->
+        IO.puts("✅ Rejection notification created with ID: #{notification.id}")
+        # Send email notification
+        send_rejection_email(user, reason, notification)
+        {:ok, notification}
+      {:error, changeset} ->
+        IO.puts("❌ Rejection notification creation error: #{inspect(changeset.errors)}")
+        {:error, changeset}
+    end
+  end
+
+  defp send_approval_email(user, notification) do
+    if user.email && user.email != "" do
+      email_params = %{
+        subject: "SignEase - Account Approved",
+        sender_email: "noreply@signease.com",
+        sender_name: "SignEase Team",
+        mail_body: """
+        Dear #{user.first_name} #{user.last_name},
+
+        Great news! Your SignEase account has been approved.
+
+        You can now:
+        - Access all learning materials
+        - Participate in live sessions
+        - Track your progress
+        - Connect with instructors
+
+        Login to your account at: https://signease.com
+
+        Welcome to SignEase!
+
+        Best regards,
+        SignEase Team
+        """,
+        recipient_email: user.email,
+        status: "READY",
+        attempts: "0",
+        notification_id: notification.id
+      }
+
+      case %Email{} |> Email.changeset(email_params) |> Repo.insert() do
+        {:ok, email} ->
+          update_email_status(email, "SENT")
+          {:ok, email}
+        {:error, changeset} ->
+          IO.puts("❌ Approval email creation error: #{inspect(changeset.errors)}")
+          {:error, changeset}
+      end
+    else
+      IO.puts("⚠️  Skipping approval email - no email for user #{user.username}")
+      {:ok, nil}
+    end
+  end
+
+  defp send_rejection_email(user, reason, notification) do
+    if user.email && user.email != "" do
+      email_params = %{
+        subject: "SignEase - Account Application Update",
+        sender_email: "noreply@signease.com",
+        sender_name: "SignEase Team",
+        mail_body: """
+        Dear #{user.first_name} #{user.last_name},
+
+        Thank you for your interest in SignEase.
+
+        After careful review of your application, we regret to inform you that your account has not been approved at this time.
+
+        Reason: #{reason}
+
+        If you believe this decision was made in error or if you have additional information to provide, please contact our support team.
+
+        We appreciate your understanding.
+
+        Best regards,
+        SignEase Team
+        """,
+        recipient_email: user.email,
+        status: "READY",
+        attempts: "0",
+        notification_id: notification.id
+      }
+
+      case %Email{} |> Email.changeset(email_params) |> Repo.insert() do
+        {:ok, email} ->
+          update_email_status(email, "SENT")
+          {:ok, email}
+        {:error, changeset} ->
+          IO.puts("❌ Rejection email creation error: #{inspect(changeset.errors)}")
+          {:error, changeset}
+      end
+    else
+      IO.puts("⚠️  Skipping rejection email - no email for user #{user.username}")
+      {:ok, nil}
+    end
+  end
 end

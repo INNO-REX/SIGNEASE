@@ -81,6 +81,12 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
     |> assign(:user, Accounts.get_user!(id))
   end
 
+  defp apply_action(socket, :filter, _params) do
+    socket
+    |> assign(:page_title, "Filter Administrators")
+    |> assign(:filter_modal, true)
+  end
+
   # =============================================================================
   # EVENT HANDLERS
   # =============================================================================
@@ -91,8 +97,11 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reload" -> handle_reload(socket)
+      "show_create_modal" -> handle_show_create_modal(socket)
+      "open_filter" -> handle_open_filter(socket)
       "export_pdf" -> handle_export_pdf(socket, params)
       "export_csv" -> handle_export_csv(socket, params)
       "export_excel" -> handle_export_excel(socket, params)
@@ -107,6 +116,25 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
 
       {:fetch_admins, params} ->
         fetch_admins(socket, params)
+
+      {SigneaseWeb.Admin.Users.Components.UserFormComponent, {:saved, _user}} ->
+        # Refresh the admins list after saving
+        send(self(), {:fetch_admins, socket.assigns.params})
+        {:noreply,
+         socket
+         |> put_flash(:info, "Administrator saved successfully.")}
+
+      {SigneaseWeb.Admin.Users.Components.UserFormComponent, :close_modal} ->
+        {:noreply, socket}
+
+      :close_modal ->
+        {:noreply, push_patch(socket, to: ~p"/admin/admins")}
+
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
 
       _ ->
         {:noreply, socket}
@@ -181,19 +209,53 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
     end
   end
 
-  defp handle_delete_event(%{"id" => id}, socket) do
-    case Accounts.delete_user(id, socket.assigns.current_user.id) do
-      {:ok, _user} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Administrator deleted successfully.")
-         |> push_navigate(to: @url, replace: true)}
+  defp handle_block_event(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete administrator: #{reason}")
-         |> push_navigate(to: @url, replace: true)}
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if admin.id == 1 or Accounts.is_seed_user?(admin) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(admin, socket.assigns.current_user.id) do
+        {:ok, _admin} ->
+          # Refresh the admins list
+          send(self(), {:fetch_admins, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Administrator blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block administrator: #{reason}")}
+      end
+    end
+  end
+
+  defp handle_delete_event(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if admin.id == 1 or Accounts.is_seed_user?(admin) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(admin, socket.assigns.current_user.id) do
+        {:ok, _admin} ->
+          # Refresh the admins list
+          send(self(), {:fetch_admins, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Administrator deleted successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete administrator: #{reason}")}
+      end
     end
   end
 
@@ -202,31 +264,107 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
   # =============================================================================
 
   defp fetch_admins(socket, params) do
-    admins = get_admins_with_pagination(params)
+    {admins, pagination} = get_admins_with_pagination_and_filters(params)
     stats = get_admin_stats()
 
     {:noreply,
      assign(socket, :admins, admins)
+     |> assign(:pagination, pagination)
      |> assign(:stats, stats)
      |> assign(:data_loader, false)}
   end
 
-  defp get_admins_with_pagination(params) do
+  defp get_admins_with_pagination_and_filters(params) do
     page = String.to_integer(params["page"] || "1")
     per_page = String.to_integer(params["per_page"] || "20")
+    sort_field = params["sort_field"] || "inserted_at"
+    sort_direction = params["sort_direction"] || "desc"
+
+    admins = get_admins_with_pagination(page, per_page, sort_field, sort_direction, extract_filters_for_context(params))
+
+    # Get total count for pagination
+    total_count = get_total_admins_count(extract_filters_for_context(params))
+
+    pagination = %{
+      page: page,
+      per_page: per_page,
+      total_count: total_count,
+      total_pages: :math.ceil(total_count / per_page),
+      sort_field: sort_field,
+      sort_direction: sort_direction
+    }
+
+    {admins, pagination}
+  end
+
+  defp get_admins_with_pagination(page, per_page, sort_field, sort_direction, filters) do
     offset = (page - 1) * per_page
 
     User
     |> preload([:role])
-    |> where([u], u.user_type == "ADMIN" or u.role_id in [1, 2])
-    |> order_by([u], [desc: u.inserted_at])
+    |> where([u], (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at))
+    |> apply_filters(filters)
+    |> apply_sorting(sort_field, sort_direction)
     |> limit(^per_page)
     |> offset(^offset)
     |> Repo.all()
   end
 
-  defp handle_reload(socket) do
-    {:noreply, push_patch(socket, to: ~p"/admin/admins")}
+  defp apply_sorting(query, sort_field, sort_direction) do
+    sort_direction_atom = String.to_existing_atom(sort_direction)
+
+    case sort_field do
+      "first_name" -> order_by(query, [u], [{^sort_direction_atom, u.first_name}])
+      "last_name" -> order_by(query, [u], [{^sort_direction_atom, u.last_name}])
+      "email" -> order_by(query, [u], [{^sort_direction_atom, u.email}])
+      "status" -> order_by(query, [u], [{^sort_direction_atom, u.status}])
+      "inserted_at" -> order_by(query, [u], [{^sort_direction_atom, u.inserted_at}])
+      _ -> order_by(query, [u], [desc: u.inserted_at])
+    end
+  end
+
+  defp get_total_admins_count(filters) do
+    User
+    |> where([u], (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at))
+    |> apply_filters(filters)
+    |> Repo.aggregate(:count, :id)
+  end
+
+  defp apply_filters(query, filters) do
+    Enum.reduce(filters, query, fn {key, value}, acc ->
+      case {key, value} do
+        {:search, search} when is_binary(search) and byte_size(search) > 0 ->
+          search_term = "%#{search}%"
+          where(acc, [u],
+            ilike(u.first_name, ^search_term) or
+            ilike(u.last_name, ^search_term) or
+            ilike(u.email, ^search_term) or
+            ilike(u.username, ^search_term))
+        _ -> acc
+      end
+    end)
+  end
+
+  defp extract_filters_for_context(params) do
+    filters = %{}
+    filters = if params["search"] && String.trim(params["search"]) != "", do: Map.put(filters, :search, String.trim(params["search"])), else: filters
+    filters
+  end
+
+      defp handle_reload(socket) do
+    Process.send_after(self(), {:fetch_admins, socket.assigns.params}, 100)
+
+    {:noreply,
+     socket
+     |> push_event("show-loader", %{id: "admins-loader"})}
+  end
+
+  defp handle_show_create_modal(socket) do
+    {:noreply, push_patch(socket, to: ~p"/admin/admins/new")}
+  end
+
+  defp handle_open_filter(socket) do
+    {:noreply, push_patch(socket, to: ~p"/admin/admins/filter")}
   end
 
   # =============================================================================
@@ -246,6 +384,48 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
   end
 
   # =============================================================================
+  # CONFIRMATION HANDLERS
+  # =============================================================================
+
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{admin.first_name} #{admin.last_name}"})}
+  end
+
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    admin = Accounts.get_user!(id)
+
+    {:noreply,
+     socket
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{admin.first_name} #{admin.last_name}"})}
+  end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  # =============================================================================
   # UTILITY FUNCTIONS
   # =============================================================================
 
@@ -253,12 +433,17 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
     socket
     |> assign(:current_path, @url)
     |> assign(:admins, [])
+    |> assign(:pagination, %{})
     |> assign(:data_loader, true)
     |> assign(:filter_modal, false)
+    |> assign(:filter_params, %{})
     |> assign(:error_modal, false)
     |> assign(:success_modal, false)
     |> assign(:error_message, "")
     |> assign(:success_message, "")
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_admin_stats())
   end
 
@@ -307,10 +492,10 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
   end
 
   defp get_admin_stats do
-    total_admins = Repo.aggregate(from(u in User, where: u.user_type == "ADMIN" or u.role_id in [1, 2]), :count, :id)
-    active_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.user_status == "ACTIVE"), :count, :id)
-    pending_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.status == "PENDING_APPROVAL"), :count, :id)
-    disabled_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.disabled == true), :count, :id)
+    total_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and is_nil(u.deleted_at)), :count, :id)
+    active_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.user_status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    disabled_admins = Repo.aggregate(from(u in User, where: (u.user_type == "ADMIN" or u.role_id in [1, 2]) and u.disabled == true and is_nil(u.deleted_at)), :count, :id)
 
     %{
       total_users: total_admins,
@@ -389,6 +574,26 @@ defmodule SigneaseWeb.Admin.Users.Admins.AdminsLive do
       1 -> "bg-purple-100 text-purple-800"
       2 -> "bg-red-100 text-red-800"
       _ -> "bg-gray-100 text-gray-800"
+    end
+  end
+
+  def get_hearing_status_class(hearing_status) do
+    case hearing_status do
+      "HEARING" -> "bg-green-100 text-green-800"
+      "DEAF" -> "bg-red-100 text-red-800"
+      "HARD_OF_HEARING" -> "bg-yellow-100 text-yellow-800"
+      "UNKNOWN" -> "bg-gray-100 text-gray-800"
+      _ -> "bg-gray-100 text-gray-800"
+    end
+  end
+
+  def format_hearing_status(hearing_status) do
+    case hearing_status do
+      "HEARING" -> "Hearing"
+      "DEAF" -> "Deaf"
+      "HARD_OF_HEARING" -> "Hard of Hearing"
+      "UNKNOWN" -> "Unknown"
+      _ -> "Unknown"
     end
   end
 end

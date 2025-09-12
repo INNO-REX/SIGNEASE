@@ -11,67 +11,37 @@
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <div class="p-6 lg:p-8">
-        <!-- Page Header -->
-        <div class="mb-8">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 class="text-3xl font-bold text-gray-900">
-                <%= @title %>
-              </h1>
-              <p class="mt-2 text-gray-600">
-                <%= @description %>
-              </p>
-              <div class="mt-2 flex items-center gap-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  Admin Panel
-                </span>
-                <span class="text-sm text-gray-500">• Administrator Management</span>
-              </div>
-            </div>
-            
-            <div class="flex space-x-3">
-              <button phx-click="reload" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Refresh
-              </button>
-              
-              <.link navigate={~p"/admin/admins/new"} class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                Add Administrator
-              </.link>
-            </div>
-          </div>
-        </div>
+        <.live_component
+          module={SigneaseWeb.Components.SimpleHeaderComponent }
+          id="header-section"
+          title={@title}
+          description={@description}
+          message={nil}
+          actions={true}
+          stats={@stats}
+        />
 
         <!-- Statistics Cards -->
         <div class="mb-8">
-          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="stats-cards" stats={@stats} />
+          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="admins-stats-cards" stats={@stats} />
         </div>
 
-        <!-- Main Content Panel -->
         <div id="panel-1" class="bg-white shadow-md rounded-lg text-xs">
           <div class="p-6">
-            <div class="grid md:flex justify-between items-center px-4 mb-6">
-              <div class="flex items-center space-x-4">
-                <h2 class="text-lg font-semibold text-gray-900">System Administrators</h2>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  <%= length(@admins) %> administrators
-                </span>
-              </div>
-              
+            <div class="grid md:flex justify-between items-center">
+              <.live_component
+                module={SigneaseWeb.Admin.Users.Components.ISearchComponent} 
+                id="ISearchComponent"
+                params={@params}
+              />
               <div class="flex space-x-4">
-                <!-- Export Dropdown -->
                 <div x-data="{ open: false }" class="relative">
                   <button
                     @click="open = !open"
                     @click.away="open = false"
-                    class="inline-flex items-center px-4 py-2 bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
                   >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Export
@@ -104,7 +74,7 @@
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         Export as Excel
                       </button>
@@ -121,162 +91,155 @@
                     </div>
                   </div>
                 </div>
+                
+                <button
+                  class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
+                  phx-click="open_filter"
+                >
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                  </svg>
+                  Filter
+                </button>
+
+                <button
+                  class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
+                  phx-click="reload"
+                >
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  Reload
+                </button>
               </div>
             </div>
             
             <div class="mt-6 my-overflow-div">
-              <%= if @data_loader do %>
-                <div class="flex justify-center items-center py-8">
-                  <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-red-600"></div>
-                  <span class="ml-2 text-gray-500">Loading administrators...</span>
-                </div>
-              <% else %>
-                <%= if Enum.empty?(@admins) do %>
-                  <div class="text-center py-8">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">No administrators found</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by creating a new administrator account.</p>
-                    <div class="mt-6">
-                      <.link navigate={~p"/admin/admins/new"} class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Add Administrator
-                      </.link>
+              <input type="hidden" name="_csrf_token" id="csrf" value={Plug.CSRFProtection.get_csrf_token()} />
+              
+              <!-- Enhanced Table Container -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <.table id="tbl_admins" rows={@admins} class="min-w-full">
+                  <:col :let={user} label="First Name" class="w-20">
+                    <div class="font-medium text-gray-900 text-xs px-2 py-1 pl-8">
+                      <%= user.first_name %>
                     </div>
-                  </div>
-                <% else %>
-                  <.table id="admins-table" rows={@admins} class="min-w-full divide-y divide-gray-200">
-                    <:col :let={admin} label="Name" class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10">
-                          <div class="h-10 w-10 rounded-full bg-gradient-to-r from-red-500 to-purple-600 flex items-center justify-center">
-                            <span class="text-sm font-medium text-white">
-                              <%= String.first(admin.first_name) %><%= String.first(admin.last_name) %>
-                            </span>
-                          </div>
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            <%= admin.first_name %> <%= admin.last_name %>
-                          </div>
-                          <div class="text-sm text-gray-500">
-                            <%= admin.email %>
-                          </div>
-                        </div>
-                      </div>
-                    </:col>
-                    
-                    <:col :let={admin} label="Role" class="px-6 py-4 whitespace-nowrap">
+                  </:col>
+                  <:col :let={user} label="Last Name" class="w-20">
+                    <div class="font-medium text-gray-900 text-xs px-2 py-1">
+                      <%= user.last_name %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Email" class="w-40">
+                    <div class="text-xs text-gray-600 px-2 py-1 truncate">
+                      <%= user.email %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Phone" class="w-28">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      <%= user.phone || "N/A" %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Type" class="w-16">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      Administrator
+                    </div>
+                  </:col>
+                 
+                  <:col :let={user} label="Status" class="w-16"> 
+                    <div class="px-2 py-1">
                       <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_admin_role_class(admin.role_id)
+                        "inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium",
+                        get_status_class(user.status)
                       ]}>
-                        <%= format_admin_role(admin.role_id) %>
-                      </span>
-                    </:col>
-                    
-                    <:col :let={admin} label="Status" class="px-6 py-4 whitespace-nowrap">
+                        <%= format_user_status(user.status) %>
+                      </span>  
+                    </div>
+                  </:col>
+                  
+                  <:col :let={user} label="Hearing Status" class="w-20"> 
+                    <div class="px-2 py-1">
                       <span class={[
-                        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                        get_status_class(admin.status)
+                        "inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium",
+                        get_hearing_status_class(user.hearing_status)
                       ]}>
-                        <%= format_user_status(admin.status) %>
-                      </span>
-                    </:col>
-                    
-                    <:col :let={admin} label="Permissions" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= if admin.role_id == 1 do %>
-                        <span class="text-purple-600 font-medium">Full System Access</span>
-                      <% else %>
-                        <span class="text-red-600 font-medium">Admin Access</span>
-                      <% end %>
-                    </:col>
-                    
-                    <:col :let={admin} label="Phone" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= admin.phone || "N/A" %>
-                    </:col>
-                    
-                    <:col :let={admin} label="Created" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <%= Calendar.strftime(admin.inserted_at, "%Y-%m-%d") %>
-                    </:col>
-                    
-                    <:action :let={admin} class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <.dropdown id={"dropdown-#{admin.id}"} label="Actions">
-                        <.link patch={~p"/admin/admins/#{admin.id}"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                          </svg>
-                          View Details
-                        </.link>
+                        <%= format_hearing_status(user.hearing_status) %>
+                      </span>  
+                    </div>
+                  </:col>
+                  
+                  <:col :let={user} label="Created" class="w-20">
+                    <div class="text-xs text-gray-600 px-2 py-1">
+                      <%= Calendar.strftime(user.inserted_at, "%b %d, %Y") %>
+                    </div>
+                  </:col>
+                  
+                  <:col :let={user} label="Actions" class="w-16">
+                    <div class="px-2 py-1 pr-6">
+                      <.dropdown id={"dropdown-#{user.id}"} label="Options">
+                        
+                      <.link patch={~p"/admin/admins/#{user.id}"} class="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        View Details
+                      </.link>
 
-                        <.link patch={~p"/admin/admins/#{admin.id}/edit"} class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                          <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                          </svg>
-                          Edit
-                        </.link>
+                      <.link patch={~p"/admin/admins/#{user.id}/edit"} class="flex items-center px-2 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Edit
+                      </.link>
 
-                        <%= if admin.status == "PENDING_APPROVAL" do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
-                            phx-click="approve"
-                            phx-value-id={admin.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Approve
-                          </.link>
-                          
-                          <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
-                            phx-click="reject"
-                            phx-value-id={admin.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Reject
-                          </.link>
-                        <% end %>
+                      <.link class="flex items-center px-2 py-1.5 text-xs text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-150" 
+                        phx-click="reset_password"
+                        phx-value-id={user.id}>
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                        Reset Password
+                      </.link>
 
-                        <%= if admin.user_status == "ACTIVE" and admin.status == "APPROVED" do %>
-                          <.link class="block px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50" 
-                            phx-click="disable"
-                            phx-value-id={admin.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
-                            </svg>
-                            Disable
-                          </.link>
-                        <% end %>
+                                  <%= if user.id != 1 and not Signease.Accounts.is_seed_user?(user) do %>
+              <.link class="flex items-center px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150"
+                phx-click="block"
+                phx-value-id={user.id}>
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                </svg>
+                Block User
+              </.link>
+            <% end %>
 
-                        <%= if admin.disabled do %>
-                          <.link class="block px-4 py-2 text-sm text-green-700 hover:bg-green-50" 
-                            phx-click="enable"
-                            phx-value-id={admin.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Enable
-                          </.link>
-                        <% end %>
-
-                        <%= if admin.id != @current_user.id do %>
-                          <.link class="block px-4 py-2 text-sm text-red-700 hover:bg-red-50" 
+                       <%= if user.id != 1 and not Signease.Accounts.is_seed_user?(user) do %>
+                         <.link class="flex items-center px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150" 
                             phx-click="delete"
-                            phx-value-id={admin.id}>
-                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            phx-value-id={user.id} >
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                             Delete
                           </.link>
-                        <% end %>
-                      </.dropdown>
-                    </:action>
-                  </.table>
-                <% end %>
+                       <% end %>
+
+                    </.dropdown>
+                  </div>
+                </:col>
+                </.table>
+              </div>
+              
+              <%= if Enum.empty?(@admins) and not @data_loader do %>
+                <div class="text-center py-8 text-gray-500">No data available in table</div>
               <% end %>
+              
+              <.live_component
+                module={SigneaseWeb.Admin.Users.Components.PaginationComponent}
+                id="PaginationComponent"
+                params={@params}
+                pagination_data={@pagination}
+              />
             </div>
           </div>
         </div>
@@ -285,11 +248,11 @@
   </div>
 </div>
 
-<!-- Administrator Details Modal -->
-<.modal :if={@live_action == :show} id="admin-show-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
+<!-- Admin Form Modal -->
+<.modal :if={@live_action == :new} id="admin-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
   <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserShowComponent}
-    id={@user.id}
+    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
+    id={:new}
     title={@page_title}
     action={@live_action}
     user={@user}
@@ -297,7 +260,6 @@
   />
 </.modal>
 
-<!-- Administrator Edit Modal -->
 <.modal :if={@live_action == :edit} id="admin-edit-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
   <.live_component
     module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
@@ -309,14 +271,41 @@
   />
 </.modal>
 
-<!-- Administrator New Modal -->
-<.modal :if={@live_action == :new} id="admin-new-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
+<.modal :if={@live_action == :show} id="admin-show-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
   <.live_component
-    module={SigneaseWeb.Admin.Users.Components.UserFormComponent}
-    id={:new}
+    module={SigneaseWeb.Admin.Users.Components.UserShowComponent}
+    id={@user.id}
     title={@page_title}
     action={@live_action}
     user={@user}
     patch={~p"/admin/admins"}
   />
-</.modal> 
+</.modal>
+
+<!-- Filter Modal -->
+<.modal :if={@live_action == :filter} id="filter-modal" show on_cancel={JS.patch(~p"/admin/admins")}>
+  <.live_component
+    module={SigneaseWeb.Admin.Users.Components.FilterComponent}
+    id={:filters}
+    title={@page_title}
+    action={@live_action}
+    filter_params={@filter_params}
+    user_type="admins"
+    patch={~p"/admin/admins"}
+  />
+</.modal>
+
+<!-- Confirmation Modal -->
+<%= if @show_confirmation_modal do %>
+  <.live_component
+    module={SigneaseWeb.Components.ConfirmationModalComponent}
+    id="confirmation-modal"
+    title={if @confirmation_action == "delete", do: "Delete Administrator", else: "Block Administrator"}
+    message={if @confirmation_action == "delete", 
+      do: "Are you sure you want to delete #{@confirmation_params["user_name"]}? This action cannot be undone.", 
+      else: "Are you sure you want to block #{@confirmation_params["user_name"]}? They will not be able to access the system."}
+    confirm_text={if @confirmation_action == "delete", do: "Delete", else: "Block"}
+    action={@confirmation_action}
+    action_params={@confirmation_params}
+  />
+<% end %> 

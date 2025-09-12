@@ -98,14 +98,13 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
       "reject" -> handle_reject_event(params, socket)
       "disable" -> handle_disable_event(params, socket)
       "enable" -> handle_enable_event(params, socket)
-      "delete" -> handle_delete_event(params, socket)
+      "block" -> handle_show_block_confirmation(params, socket)
+      "delete" -> handle_show_delete_confirmation(params, socket)
       "reset_password" -> handle_reset_password_event(params, socket)
       "reload" -> handle_reload(socket)
       "export_pdf" -> handle_export_pdf(socket, params)
       "export_csv" -> handle_export_csv(socket, params)
       "export_excel" -> handle_export_excel(socket, params)
-      "filter" -> handle_filter_event(params, socket)
-      "clear_filters" -> handle_clear_filters(socket)
       "change_page" -> handle_change_page(params, socket)
       "change_per_page" -> handle_change_per_page(params, socket)
       "sort" -> handle_sort_event(params, socket)
@@ -130,6 +129,10 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
          socket
          |> assign(:show_modal, false)
          |> assign(:learner, nil)}
+      {:close_confirmation_modal, _modal_id} ->
+        {:noreply, assign(socket, :show_confirmation_modal, false)}
+      {:confirm_action, action, params} ->
+        handle_confirmed_action(action, params, socket)
       _ -> {:noreply, socket}
     end
   end
@@ -229,21 +232,53 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     end
   end
 
+  defp handle_block_event(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
+
+    # Prevent blocking the default admin user (ID 1) or seed users
+    if learner.id == 1 or Accounts.is_seed_user?(learner) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot block system users (default admin or seed users).")}
+    else
+      case Accounts.block_user(learner, socket.assigns.current_user.id) do
+        {:ok, _learner} ->
+          # Refresh the learners list
+          send(self(), {:fetch_learners, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Learner blocked successfully.")}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to block learner: #{reason}")}
+      end
+    end
+  end
+
   defp handle_delete_event(%{"id" => id}, socket) do
     learner = Accounts.get_user!(id)
 
-    case Accounts.delete_user(learner, socket.assigns.current_user.id) do
-      {:ok, _learner} ->
-        # Refresh the learners list
-        send(self(), {:fetch_learners, socket.assigns.params})
-        {:noreply,
-         socket
-         |> put_flash(:info, "Learner deleted successfully.")}
+    # Prevent deleting the default admin user (ID 1) or seed users
+    if learner.id == 1 or Accounts.is_seed_user?(learner) do
+      {:noreply,
+       socket
+       |> put_flash(:error, "Cannot delete system users (default admin or seed users).")}
+    else
+      case Accounts.soft_delete_user(learner, socket.assigns.current_user.id) do
+        {:ok, _learner} ->
+          # Refresh the learners list
+          send(self(), {:fetch_learners, socket.assigns.params})
+          {:noreply,
+           socket
+           |> put_flash(:info, "Learner deleted successfully.")}
 
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to delete learner: #{reason}")}
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> put_flash(:error, "Failed to delete learner: #{reason}")}
+      end
     end
   end
 
@@ -264,25 +299,50 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
   end
 
   # =============================================================================
-  # FILTER & PAGINATION HANDLERS
+  # CONFIRMATION HANDLERS
   # =============================================================================
 
-  defp handle_filter_event(params, socket) do
-    current_params = socket.assigns.params
-    new_params = Map.merge(current_params, params)
+  defp handle_show_delete_confirmation(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
 
     {:noreply,
      socket
-     |> assign(:params, new_params)
-     |> then(fn socket -> send(self(), {:fetch_learners, new_params}); socket end)}
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "delete")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{learner.first_name} #{learner.last_name}"})}
   end
 
-  defp handle_clear_filters(socket) do
+  defp handle_show_block_confirmation(%{"id" => id}, socket) do
+    learner = Accounts.get_user!(id)
+
     {:noreply,
      socket
-     |> assign(:params, %{})
-     |> then(fn socket -> send(self(), {:fetch_learners, %{}}); socket end)}
+     |> assign(:show_confirmation_modal, true)
+     |> assign(:confirmation_action, "block")
+     |> assign(:confirmation_params, %{"id" => id, "user_name" => "#{learner.first_name} #{learner.last_name}"})}
   end
+
+  defp handle_confirmed_action("delete", params, socket) do
+    case handle_delete_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  defp handle_confirmed_action("block", params, socket) do
+    case handle_block_event(params, socket) do
+      {:noreply, updated_socket} ->
+        {:noreply, assign(updated_socket, :show_confirmation_modal, false)}
+      other ->
+        other
+    end
+  end
+
+  # =============================================================================
+  # PAGINATION HANDLERS
+  # =============================================================================
 
   defp handle_change_page(%{"page" => page}, socket) do
     current_params = socket.assigns.params
@@ -325,7 +385,6 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     {:noreply,
      assign(socket, :learners, learners)
      |> assign(:pagination, pagination)
-     |> assign(:filters, extract_filters(params))
      |> assign(:stats, stats)
      |> assign(:data_loader, false)}
   end
@@ -337,8 +396,8 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     sort_direction = params["sort_direction"] || "desc"
 
     # Get learners (users with user_type = "LEARNER")
-    learners = get_learners_with_pagination(page, per_page, sort_field, sort_direction, extract_filters_for_context(params))
-    total_count = get_learners_count(extract_filters_for_context(params))
+    learners = get_learners_with_pagination(page, per_page, sort_field, sort_direction)
+    total_count = get_learners_count()
 
     pagination = %{
       current_page: page,
@@ -352,40 +411,19 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     {learners, pagination}
   end
 
-  defp get_learners_with_pagination(page, per_page, sort_field, sort_direction, filters) do
+  defp get_learners_with_pagination(page, per_page, sort_field, sort_direction) do
     User
-    |> where([u], u.user_type == "LEARNER")
-    |> apply_learners_filters(filters)
+    |> where([u], u.user_type == "LEARNER" and is_nil(u.deleted_at))
     |> apply_learners_sorting(sort_field, sort_direction)
     |> limit(^per_page)
     |> offset(^((page - 1) * per_page))
     |> Repo.all()
   end
 
-  defp get_learners_count(filters) do
+  defp get_learners_count() do
     User
-    |> where([u], u.user_type == "LEARNER")
-    |> apply_learners_filters(filters)
+    |> where([u], u.user_type == "LEARNER" and is_nil(u.deleted_at))
     |> Repo.aggregate(:count, :id)
-  end
-
-  defp apply_learners_filters(query, filters) do
-    Enum.reduce(filters, query, fn {key, value}, acc ->
-      case {key, value} do
-        {:search, search} when is_binary(search) and byte_size(search) > 0 ->
-          search_term = "%#{search}%"
-          from(u in acc,
-            where: ilike(u.first_name, ^search_term) or
-                   ilike(u.last_name, ^search_term) or
-                   ilike(u.email, ^search_term) or
-                   ilike(u.username, ^search_term))
-        {:hearing_status, status} when is_binary(status) and byte_size(status) > 0 ->
-          from(u in acc, where: u.hearing_status == ^status)
-        {:status, status} when is_binary(status) and byte_size(status) > 0 ->
-          from(u in acc, where: u.status == ^status)
-        _ -> acc
-      end
-    end)
   end
 
   defp apply_learners_sorting(query, sort_field, sort_direction) do
@@ -403,49 +441,6 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
       _ -> from(u in query, order_by: [desc: u.inserted_at])
     end
   end
-
-  defp extract_filters_for_context(params) do
-    %{
-      search: params["search"] || "",
-      status: params["status"] || "",
-      hearing_status: params["hearing_status"] || "",
-      current_level: params["current_level"] || "",
-      learning_path: params["learning_path"] || "",
-      certification_level: params["certification_level"] || "",
-      enrollment_date_from: parse_date(params["enrollment_date_from"]),
-      enrollment_date_to: parse_date(params["enrollment_date_to"]),
-      approved: parse_boolean(params["approved"])
-    }
-  end
-
-  defp extract_filters(params) do
-    %{
-      search: params["search"] || "",
-      status: params["status"] || "",
-      hearing_status: params["hearing_status"] || "",
-      current_level: params["current_level"] || "",
-      learning_path: params["learning_path"] || "",
-      certification_level: params["certification_level"] || "",
-      enrollment_date_from: params["enrollment_date_from"] || "",
-      enrollment_date_to: params["enrollment_date_to"] || "",
-      approved: params["approved"] || ""
-    }
-  end
-
-  defp parse_date(nil), do: nil
-  defp parse_date(""), do: nil
-  defp parse_date(date_string) do
-    case Date.from_iso8601(date_string) do
-      {:ok, date} -> date
-      _ -> nil
-    end
-  end
-
-  defp parse_boolean(nil), do: nil
-  defp parse_boolean(""), do: nil
-  defp parse_boolean("true"), do: true
-  defp parse_boolean("false"), do: false
-  defp parse_boolean(_), do: nil
 
   defp handle_reload(socket) do
     {:noreply,
@@ -479,9 +474,7 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     |> assign(:current_path, @url)
     |> assign(:learners, [])
     |> assign(:pagination, %{})
-    |> assign(:filters, %{})
     |> assign(:data_loader, true)
-    |> assign(:filter_modal, false)
     |> assign(:error_modal, false)
     |> assign(:success_modal, false)
     |> assign(:error_message, "")
@@ -489,6 +482,9 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
     |> assign(:show_modal, false)
     |> assign(:learner, nil)
     |> assign(:action, nil)
+    |> assign(:show_confirmation_modal, false)
+    |> assign(:confirmation_action, nil)
+    |> assign(:confirmation_params, nil)
     |> assign(:stats, get_learner_stats())
   end
 
@@ -537,11 +533,11 @@ defmodule SigneaseWeb.Admin.Users.Learners.LearnersLive do
   end
 
   defp get_learner_stats do
-    total_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER"), :count, :id)
-    active_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "ACTIVE"), :count, :id)
-    pending_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "PENDING_APPROVAL"), :count, :id)
-    hearing_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "HEARING"), :count, :id)
-    deaf_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "DEAF"), :count, :id)
+    total_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and is_nil(u.deleted_at)), :count, :id)
+    active_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "ACTIVE" and is_nil(u.deleted_at)), :count, :id)
+    pending_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.status == "PENDING_APPROVAL" and is_nil(u.deleted_at)), :count, :id)
+    hearing_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "HEARING" and is_nil(u.deleted_at)), :count, :id)
+    deaf_learners = Repo.aggregate(from(u in User, where: u.user_type == "LEARNER" and u.hearing_status == "DEAF" and is_nil(u.deleted_at)), :count, :id)
 
     %{
       total_users: total_learners,

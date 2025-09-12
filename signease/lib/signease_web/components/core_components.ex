@@ -113,9 +113,10 @@ defmodule SigneaseWeb.CoreComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-hook="FlashHooks"
       role="alert"
       class={[
-        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
+        "fixed top-2 right-2 mr-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1 flash-message",
         @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
         @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
       ]}
@@ -462,6 +463,7 @@ defmodule SigneaseWeb.CoreComponents do
 
   slot :col, required: true do
     attr :label, :string
+    attr :class, :string
   end
 
   slot :action, doc: "the slot for showing user actions in the last table column"
@@ -474,10 +476,10 @@ defmodule SigneaseWeb.CoreComponents do
 
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
+      <table class="w-full mt-11">
+        <thead class="text-sm text-left leading-6 text-zinc-700">
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal"><%= col[:label] %></th>
+            <th :for={{col, i} <- Enum.with_index(@col)} class={["p-0 pb-4 pr-6 font-bold", Map.get(col, :class), i == 0 && "pl-6"]}><%= col[:label] %></th>
             <th :if={@action != []} class="relative p-0 pb-4">
               <span class="sr-only"><%= gettext("Actions") %></span>
             </th>
@@ -492,7 +494,7 @@ defmodule SigneaseWeb.CoreComponents do
             <td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={["relative p-0", Map.get(col, :class), @row_click && "hover:cursor-pointer"]}
             >
               <div class="block py-4 pr-6">
                 <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
@@ -588,10 +590,28 @@ defmodule SigneaseWeb.CoreComponents do
     ~H"""
     <div class="relative inline-block text-left" x-data="{ open: false, dropdownStyle: '' }" x-init="open = false">
       <button
-        @click="open = !open; if(open) { const rect = $el.getBoundingClientRect(); dropdownStyle = 'left: ' + (rect.left + rect.width - 128) + 'px; top: ' + (rect.bottom + 4) + 'px;' }"
+        @click="open = !open; if(open) {
+          const rect = $el.getBoundingClientRect();
+          const dropdownHeight = 200; // Approximate dropdown height
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+
+          let top, left;
+          left = rect.left + rect.width - 128;
+
+          if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+            // Position below
+            top = rect.bottom + 4;
+          } else {
+            // Position above
+            top = rect.top - dropdownHeight - 4;
+          }
+
+          dropdownStyle = 'left: ' + left + 'px; top: ' + top + 'px;';
+        }"
         @click.away="open = false"
         type="button"
-        class="inline-flex items-center px-4 py-2 bg-[#0c2f9d] text-white tracking-wider text-sm font-semibold rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+        class="inline-flex items-center px-2.5 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
       >
         <%= @label %>
         <svg class="ml-2 h-4 w-4 transition-transform duration-200" x-bind:class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -607,7 +627,7 @@ defmodule SigneaseWeb.CoreComponents do
         x-transition:leave="transition ease-in duration-75"
         x-transition:leave-start="transform opacity-100 scale-100"
         x-transition:leave-end="transform opacity-0 scale-95"
-        class="fixed z-[99999] w-32 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 border border-gray-200"
+        class="fixed z-[99999] w-32 rounded-lg shadow-lg bg-white ring-1 ring-gray-200 border border-gray-100 max-h-48 overflow-y-auto"
         x-bind:style="dropdownStyle"
         style="display: none;"
         role="menu"
@@ -615,7 +635,7 @@ defmodule SigneaseWeb.CoreComponents do
         aria-labelledby="menu-button"
         tabindex="-1"
       >
-        <div class="py-1" role="none">
+        <div class="py-0.5" role="none">
           <%= render_slot(@inner_block) %>
         </div>
       </div>

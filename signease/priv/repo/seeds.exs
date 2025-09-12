@@ -4,3 +4,6 @@
 
 Signease.Seeds.SetUser.run()
 Signease.Seeds.SetTestNotifications.run()
+
+# Create learning programs and courses
+Signease.Seeds.SetLearning.run()

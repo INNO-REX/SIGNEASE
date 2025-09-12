@@ -1,0 +1,416 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-0 overflow-y-auto h-full w-full z-50 transition-all duration-700 ease-out" style="background-color: rgba(75, 85, 99, 0.5);" phx-click="close" phx-target={@myself}>
+  <div class="relative top-10 mx-auto p-0 border-0 w-11/12 max-w-4xl shadow-2xl rounded-xl bg-white transform transition-all duration-700 ease-out opacity-0 translate-y-8" style="opacity: 1; transform: translateY(0);">
+    <!-- Header with professional background -->
+    <div class="bg-gray-700 rounded-t-xl p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-6 w-6 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div class="ml-2">
+            <h3 class="text-base font-medium text-gray-200"><%= @title %></h3>
+            <p class="text-xs text-gray-200"><%= @page_title %></p>
+          </div>
+        </div>
+        <button type="button" phx-click="close" phx-target={@myself} class="h-6 w-6 text-gray-200 hover:text-gray-100 focus:outline-none">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="bg-gray-50 px-8 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class={if @current_step >= 1, do: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-600 text-white", else: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-300 text-gray-500"}>
+            1
+          </div>
+          <span class={if @current_step >= 1, do: "text-sm font-medium text-gray-700", else: "text-sm font-medium text-gray-500"}>
+            Personal Information
+          </span>
+        </div>
+
+        <div class="flex-1 mx-4">
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-gray-600 h-2 rounded-full transition-all duration-300" style={"width: #{(@current_step / 3) * 100}%"}>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <div class={if @current_step >= 2, do: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-600 text-white", else: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-300 text-gray-500"}>
+            2
+          </div>
+          <span class={if @current_step >= 2, do: "text-sm font-medium text-gray-700", else: "text-sm font-medium text-gray-500"}>
+            Academic Information
+          </span>
+        </div>
+
+        <div class="flex-1 mx-4">
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-gray-600 h-2 rounded-full transition-all duration-300" style={"width: #{if @current_step >= 2, do: 100, else: 0}%"}>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <div class={if @current_step >= 3, do: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-600 text-white", else: "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-gray-300 text-gray-500"}>
+            3
+          </div>
+          <span class={if @current_step >= 3, do: "text-sm font-medium text-gray-700", else: "text-sm font-medium text-gray-500"}>
+            System Information
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="p-6 transition-all duration-500 ease-out delay-200 opacity-0 translate-y-4" style="opacity: 1; transform: translateY(0);">
+      <!-- Global Error Display -->
+      <%= if @show_errors and length(@validation_errors) > 0 do %>
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <ul class="list-disc pl-4 space-y-1">
+                  <%= for error <- @validation_errors do %>
+                    <li class="flex items-center">
+                      <span><%= error.message %></span>
+                      <%= if error.step != @current_step do %>
+                        <button 
+                          phx-click="clear_errors" 
+                          phx-target={@myself}
+                          class="ml-2 text-xs text-red-600 hover:text-red-800 underline"
+                        >
+                          (Go to Step <%= error.step %>)
+                        </button>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+              <div class="mt-3">
+                <button 
+                  phx-click="clear_errors" 
+                  phx-target={@myself}
+                  class="text-xs text-red-600 hover:text-red-800 underline"
+                >
+                  Dismiss errors
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <.form
+        for={@changeset}
+        id="learner-form"
+        phx-target={@myself}
+        phx-submit="save"
+        phx-change="validate"
+        class="space-y-6"
+      >
+        <!-- Step 1: Personal Information -->
+        <div class={if @current_step == 1, do: "block", else: "hidden"}>
+          <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="flex-shrink-0 h-6 w-6">
+                <div class="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-2">
+                <h4 class="text-base font-semibold text-gray-900">Personal Information</h4>
+                <p class="text-xs text-gray-500">Basic personal details and contact information</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">First Name *</label>
+                <input
+                  type="text"
+                  name="user[first_name]"
+                  value={Ecto.Changeset.get_field(@changeset, :first_name)}
+                  required
+                  class={if has_field_error?(@changeset, :first_name), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="Enter first name"
+                />
+                <%= if has_field_error?(@changeset, :first_name) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :first_name) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Last Name *</label>
+                <input
+                  type="text"
+                  name="user[last_name]"
+                  value={Ecto.Changeset.get_field(@changeset, :last_name)}
+                  required
+                  class={if has_field_error?(@changeset, :last_name), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="Enter last name"
+                />
+                <%= if has_field_error?(@changeset, :last_name) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :last_name) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Email Address *</label>
+                <input
+                  type="email"
+                  name="user[email]"
+                  value={Ecto.Changeset.get_field(@changeset, :email)}
+                  required
+                  class={if has_field_error?(@changeset, :email), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="Enter email address"
+                />
+                <%= if has_field_error?(@changeset, :email) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :email) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Phone Number *</label>
+                <input
+                  type="tel"
+                  name="user[phone]"
+                  value={Ecto.Changeset.get_field(@changeset, :phone)}
+                  required
+                  class={if has_field_error?(@changeset, :phone), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="+1 (555) 123-4567"
+                />
+                <%= if has_field_error?(@changeset, :phone) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :phone) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Username *</label>
+                <input
+                  type="text"
+                  name="user[username]"
+                  value={Ecto.Changeset.get_field(@changeset, :username)}
+                  required
+                  class={if has_field_error?(@changeset, :username), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"}
+                  placeholder="Choose a username"
+                />
+                <%= if has_field_error?(@changeset, :username) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :username) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Date of Birth</label>
+                <input
+                  type="date"
+                  name="user[date_of_birth]"
+                  value={Ecto.Changeset.get_field(@changeset, :date_of_birth)}
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Academic Information -->
+        <div class={if @current_step == 2, do: "block", else: "hidden"}>
+          <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="flex-shrink-0 h-6 w-6">
+                <div class="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-2">
+                <h4 class="text-base font-semibold text-gray-900">Academic Information</h4>
+                <p class="text-xs text-gray-500">Program details and enrollment information</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Program *</label>
+                <select
+                  name="user[program]"
+                  value={Ecto.Changeset.get_field(@changeset, :program)}
+                  required
+                  class={if has_field_error?(@changeset, :program), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select program</option>
+                  <option value="Computer Science" selected={Ecto.Changeset.get_field(@changeset, :program) == "Computer Science"}>Computer Science</option>
+                  <option value="Mathematics" selected={Ecto.Changeset.get_field(@changeset, :program) == "Mathematics"}>Mathematics</option>
+                  <option value="Sign Language Studies" selected={Ecto.Changeset.get_field(@changeset, :program) == "Sign Language Studies"}>Sign Language Studies</option>
+                  <option value="Education" selected={Ecto.Changeset.get_field(@changeset, :program) == "Education"}>Education</option>
+                  <option value="Psychology" selected={Ecto.Changeset.get_field(@changeset, :program) == "Psychology"}>Psychology</option>
+                  <option value="Business Administration" selected={Ecto.Changeset.get_field(@changeset, :program) == "Business Administration"}>Business Administration</option>
+                  <option value="Engineering" selected={Ecto.Changeset.get_field(@changeset, :program) == "Engineering"}>Engineering</option>
+                  <option value="Arts and Humanities" selected={Ecto.Changeset.get_field(@changeset, :program) == "Arts and Humanities"}>Arts and Humanities</option>
+                  <option value="Other" selected={Ecto.Changeset.get_field(@changeset, :program) == "Other"}>Other</option>
+                </select>
+                <%= if has_field_error?(@changeset, :program) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :program) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Enrolled Year *</label>
+                <select
+                  name="user[enrolled_year]"
+                  value={Ecto.Changeset.get_field(@changeset, :enrolled_year)}
+                  required
+                  class={if has_field_error?(@changeset, :enrolled_year), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select year</option>
+                  <option value="2024" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2024}>2024</option>
+                  <option value="2025" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2025}>2025</option>
+                  <option value="2026" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2026}>2026</option>
+                  <option value="2027" selected={Ecto.Changeset.get_field(@changeset, :enrolled_year) == 2027}>2027</option>
+                </select>
+                <%= if has_field_error?(@changeset, :enrolled_year) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :enrolled_year) %></p>
+                <% end %>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Semester *</label>
+                <select
+                  name="user[semester]"
+                  value={Ecto.Changeset.get_field(@changeset, :semester)}
+                  required
+                  class={if has_field_error?(@changeset, :semester), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select semester</option>
+                  <option value="Fall" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Fall"}>Fall</option>
+                  <option value="Spring" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Spring"}>Spring</option>
+                  <option value="Summer" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Summer"}>Summer</option>
+                  <option value="Winter" selected={Ecto.Changeset.get_field(@changeset, :semester) == "Winter"}>Winter</option>
+                </select>
+                <%= if has_field_error?(@changeset, :semester) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :semester) %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: System Information -->
+        <div class={if @current_step == 3, do: "block", else: "hidden"}>
+          <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center mb-4">
+              <div class="flex-shrink-0 h-6 w-6">
+                <div class="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-2">
+                <h4 class="text-base font-semibold text-gray-900">System Information</h4>
+                <p class="text-xs text-gray-500">Accessibility and system preferences</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Hearing Status *</label>
+                <select
+                  name="user[hearing_status]"
+                  value={Ecto.Changeset.get_field(@changeset, :hearing_status)}
+                  required
+                  class={if has_field_error?(@changeset, :hearing_status), do: "w-full px-3 py-2 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors duration-200 bg-white", else: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 bg-white"}
+                >
+                  <option value="">Select hearing status</option>
+                  <option value="HEARING" selected={Ecto.Changeset.get_field(@changeset, :hearing_status) == "HEARING"}>Hearing</option>
+                  <option value="DEAF" selected={Ecto.Changeset.get_field(@changeset, :hearing_status) == "DEAF"}>Deaf</option>
+                  <option value="HARD_OF_HEARING" selected={Ecto.Changeset.get_field(@changeset, :hearing_status) == "HARD_OF_HEARING"}>Hard of Hearing</option>
+                </select>
+                <%= if has_field_error?(@changeset, :hearing_status) do %>
+                  <p class="text-xs text-red-600 mt-1"><%= get_field_error(@changeset, :hearing_status) %></p>
+                <% end %>
+              </div>
+
+              <div class="md:col-span-2 space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Student ID</label>
+                <input
+                  type="text"
+                  value="Auto-generated"
+                  disabled
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+                <p class="text-xs text-gray-500">This will be automatically generated by the system</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            phx-click="previous_step"
+            phx-target={@myself}
+            class={if @current_step > 1, do: "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 shadow-sm", else: "px-4 py-2 text-xs font-medium rounded-md transition-all duration-200 text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed"}
+            disabled={@current_step <= 1}
+          >
+            <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Previous
+          </button>
+
+          <div class="flex space-x-3">
+            <button
+              type="button"
+              phx-click="close"
+              phx-target={@myself}
+              class="px-4 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 shadow-sm"
+            >
+              Cancel
+            </button>
+
+            <%= if @current_step < 3 do %>
+              <button
+                type="button"
+                phx-click="next_step"
+                phx-target={@myself}
+                class="px-6 py-2 text-xs font-medium text-white bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                Next
+                <svg class="w-3 h-3 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            <% else %>
+              <button
+                type="submit"
+                class="px-6 py-2 text-xs font-medium text-white bg-gray-600 border border-transparent rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <%= if @action == :new, do: "Create Learner", else: "Update Learner" %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </.form>
+    </div>
+  </div>
+</div> 

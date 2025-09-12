@@ -1,0 +1,290 @@
+<.loader id="approvals-loader" />
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Admin.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Admin.Components.SideNavComponent} id="side-nav" current_page="user-approvals" stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-6 lg:p-8">
+        <.live_component
+          module={SigneaseWeb.Components.SimpleHeaderComponent }
+          id="header-section"
+          title={@title}
+          description={@description}
+          message={nil}
+          actions={false}
+          stats={@stats}
+        />
+
+        <!-- Statistics Cards -->
+        <div class="mb-8">
+          <.live_component module={SigneaseWeb.Admin.Components.StatsCardsComponent} id="approvals-stats-cards" stats={@stats} />
+        </div>
+
+        <div id="panel-1" class="bg-white shadow-md rounded-lg text-xs">
+          <div class="p-6">
+            <div class="grid md:flex justify-between items-center">
+              <.live_component
+                module={SigneaseWeb.Admin.Users.Components.ISearchComponent} 
+                id="ISearchComponent"
+                params={@params}
+              />
+              <div class="flex space-x-4">
+                <!-- Bulk Approve Button -->
+                <button 
+                  phx-click="bulk_approve" 
+                  class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-xs font-medium rounded-md hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
+                  disabled={MapSet.size(@selected_users) == 0}
+                >
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Bulk Approve (<%= MapSet.size(@selected_users) %>)
+                </button>
+
+                <div x-data="{ open: false }" class="relative">
+                  <button
+                    @click="open = !open"
+                    @click.away="open = false"
+                    class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
+                  >
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export
+                  </button>
+                  
+                  <div
+                    x-show="open"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="transform opacity-0 scale-95"
+                    x-transition:enter-end="transform opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="transform opacity-100 scale-100"
+                    x-transition:leave-end="transform opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+                    style="display: none;"
+                  >
+                    <div class="py-1">
+                      <button
+                        phx-click="export_pdf"
+                        class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        Export as PDF
+                      </button>
+                      
+                      <button
+                        phx-click="export_excel"
+                        class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Export as Excel
+                      </button>
+                      
+                      <button
+                        phx-click="export_csv"
+                        class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Export as CSV
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <button
+                  class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-medium rounded-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 shadow-sm"
+                  phx-click="open_filter"
+                >
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                  </svg>
+                  Filter
+                </button>
+
+
+              </div>
+            </div>
+            
+            <div class="mt-6 my-overflow-div">
+              <input type="hidden" name="_csrf_token" id="csrf" value={Plug.CSRFProtection.get_csrf_token()} />
+              
+              <!-- Enhanced Table Container -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <.table id="tbl_approvals" rows={@pending_approvals} class="min-w-full">
+                  <:col :let={user} label={
+                    if length(@pending_approvals) > 0 do
+                      ~H"""
+                      <div class="flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={MapSet.size(@selected_users) == length(@pending_approvals)}
+                          class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          phx-click={if MapSet.size(@selected_users) == length(@pending_approvals), do: "deselect_all", else: "select_all"}
+                        />
+                      </div>
+                      """
+                    else
+                      ""
+                    end
+                  } class="w-8">
+                    <div class="px-3 py-2">
+                      <input 
+                        type="checkbox" 
+                        value={user.id}
+                        checked={MapSet.member?(@selected_users, user.id)}
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        phx-click="toggle_selection"
+                        phx-value-id={user.id}
+                      />
+                    </div>
+                  </:col>
+                  <:col :let={user} label="First Name" class="w-24">
+                    <div class="font-medium text-gray-900 text-sm px-3 py-2 pl-6">
+                      <%= user.first_name %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Last Name" class="w-24">
+                    <div class="font-medium text-gray-900 text-sm px-3 py-2">
+                      <%= user.last_name %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Email" class="w-48">
+                    <div class="text-sm text-gray-600 px-3 py-2 truncate">
+                      <%= user.email %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Phone" class="w-32">
+                    <div class="text-sm text-gray-600 px-3 py-2">
+                      <%= user.phone || "N/A" %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Type" class="w-20">
+                    <div class="text-sm text-gray-600 px-3 py-2">
+                      <%= user.user_type %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Status" class="w-24">
+                    <div class="px-3 py-2">
+                      <span class={[
+                        "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                        get_status_class(user.status)
+                      ]}>
+                        <%= format_user_status(user.status) %>
+                      </span>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Hearing Status" class="w-24">
+                    <div class="px-3 py-2">
+                      <span class={[
+                        "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                        get_hearing_status_class(user.hearing_status)
+                      ]}>
+                        <%= format_hearing_status(user.hearing_status) %>
+                      </span>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Requested" class="w-24">
+                    <div class="text-sm text-gray-600 px-3 py-2">
+                      <%= Calendar.strftime(user.inserted_at, "%b %d, %Y") %>
+                    </div>
+                  </:col>
+                  <:col :let={user} label="Actions" class="w-32">
+                    <div class="px-3 py-2">
+                      <.dropdown id={"dropdown-#{user.id}"} label="Options">
+                        <.link patch={~p"/admin/user-approvals/#{user.id}"} class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                          View Details
+                        </.link>
+                        
+                        <.link phx-click="approve" phx-value-id={user.id} class="flex items-center px-3 py-2 text-sm text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                          Approve
+                        </.link>
+                        
+                        <.link phx-click="reject" phx-value-id={user.id} phx-value-reason="Rejected by administrator" class="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                          Reject
+                        </.link>
+                      </.dropdown>
+                    </div>
+                  </:col>
+                </.table>
+
+                <!-- Pagination -->
+                <.live_component
+                  module={SigneaseWeb.Admin.Users.Components.PaginationComponent}
+                  id="PaginationComponent"
+                  pagination_data={%{
+                    current_page: @pagination.page,
+                    total_pages: @pagination.total_pages,
+                    total_count: @pagination.total_count,
+                    per_page: @pagination.per_page,
+                    has_prev: @pagination.page > 1,
+                    has_next: @pagination.page < @pagination.total_pages
+                  }}
+                  params={@params}
+                />
+              </div>
+
+              <!-- Empty State -->
+              <%= if length(@pending_approvals) == 0 and not @data_loader do %>
+                <div class="text-center py-12">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">No pending approvals</h3>
+                  <p class="mt-1 text-sm text-gray-500">All user registrations have been reviewed.</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Details Modal -->
+  <.modal :if={@live_action == :show} id="user-show-modal" show on_cancel={JS.patch(~p"/admin/user-approvals")}>
+    <.live_component
+      module={SigneaseWeb.Admin.Users.Components.UserShowComponent}
+      id={@user.id}
+      title={@page_title}
+      action={@live_action}
+      user={@user}
+      patch={~p"/admin/user-approvals"}
+    />
+  </.modal>
+
+  <!-- Filter Modal -->
+  <.modal :if={@live_action == :filter} id="filter-modal" show on_cancel={JS.patch(~p"/admin/user-approvals")}>
+    <.live_component
+      module={SigneaseWeb.Admin.Users.Components.FilterComponent}
+      id={:filters}
+      title={@page_title}
+      action={@live_action}
+      filter_params={@filter_params}
+      user_type="approvals"
+      patch={~p"/admin/user-approvals"}
+    />
+  </.modal>
+</div> 

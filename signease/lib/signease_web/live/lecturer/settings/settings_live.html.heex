@@ -1,0 +1,316 @@
+<.loader id="settings-loader" />
+
+<div class="min-h-screen bg-gray-50">
+  <!-- Top Navigation Bar -->
+  <.live_component module={SigneaseWeb.Lecturer.Components.TopNavComponent} id="top-nav" current_user={@current_user} />
+
+  <div class="flex h-screen">
+    <!-- Side Navigation -->
+    <.live_component module={SigneaseWeb.Lecturer.Components.SideNavComponent} id="side-nav" current_page="settings" stats={@stats} current_user={@current_user} />
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+      <div class="p-6 lg:p-8">
+        <!-- Success Alert -->
+        <%= if @show_success_alert do %>
+          <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-green-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <div>
+                <h3 class="text-sm font-medium text-green-800">Profile Updated Successfully!</h3>
+                <p class="text-sm text-green-700 mt-1">Your profile information has been saved.</p>
+              </div>
+            </div>
+            <button phx-click="dismiss_alert" class="text-green-400 hover:text-green-600">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </div>
+        <% end %>
+        
+        <!-- Page Header -->
+        <div class="mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900">
+                Settings
+              </h1>
+              <p class="mt-2 text-gray-600">
+                Manage your account and preferences.
+              </p>
+              <div class="mt-2 flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Lecturer Panel
+                </span>
+                <span class="text-sm text-gray-500">• Settings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Panel -->
+        <div id="panel-1" class="bg-white shadow-md rounded-lg text-xs">
+          <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <!-- Profile Section -->
+              <div class="lg:col-span-1">
+                <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Profile</h3>
+                  <div class="flex items-center space-x-4 mb-6">
+                    <div class="flex-shrink-0">
+                      <div class="h-16 w-16 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center justify-center">
+                        <span class="text-white text-xl font-bold">
+                          <%= String.first(@current_user.first_name) %><%= String.first(@current_user.last_name) %>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        <%= @current_user.first_name %> <%= @current_user.last_name %>
+                      </p>
+                      <p class="text-sm text-gray-500 truncate"><%= @current_user.email %></p>
+                      <p class="text-sm text-gray-500"><%= @current_user.user_role %></p>
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <button phx-click="show_profile_view" class="w-full inline-flex items-center justify-center px-4 py-2 border border-emerald-300 rounded-md shadow-sm text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      View Profile
+                    </button>
+                    <button phx-click="show_profile_modal" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                      </svg>
+                      Edit Profile
+                    </button>
+                    <button phx-click="show_password_modal" class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                      <svg class="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                      </svg>
+                      Change Password
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Settings Sections -->
+              <div class="lg:col-span-2 space-y-6">
+                <!-- Notifications -->
+                <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Notifications</h3>
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Email Notifications</p>
+                        <p class="text-sm text-gray-500">Receive notifications via email</p>
+                      </div>
+                      <button phx-click="toggle_notification" phx-value-type="email_notifications" class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.notifications.email_notifications && "bg-emerald-600",
+                        !@settings.notifications.email_notifications && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.notifications.email_notifications && "translate-x-5",
+                          !@settings.notifications.email_notifications && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Push Notifications</p>
+                        <p class="text-sm text-gray-500">Receive push notifications in browser</p>
+                      </div>
+                      <button phx-click="toggle_notification" phx-value-type="push_notifications" class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.notifications.push_notifications && "bg-emerald-600",
+                        !@settings.notifications.push_notifications && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.notifications.push_notifications && "translate-x-5",
+                          !@settings.notifications.push_notifications && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Session Reminders</p>
+                        <p class="text-sm text-gray-500">Get reminded about upcoming sessions</p>
+                      </div>
+                      <button phx-click="toggle_notification" phx-value-type="session_reminders" class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.notifications.session_reminders && "bg-emerald-600",
+                        !@settings.notifications.session_reminders && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.notifications.session_reminders && "translate-x-5",
+                          !@settings.notifications.session_reminders && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preferences -->
+                <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Preferences</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+                      <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                        <option value="light" selected={@settings.preferences.theme == "light"}>Light</option>
+                        <option value="dark" selected={@settings.preferences.theme == "dark"}>Dark</option>
+                        <option value="auto" selected={@settings.preferences.theme == "auto"}>Auto</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                      <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                        <option value="en" selected={@settings.preferences.language == "en"}>English</option>
+                        <option value="es" selected={@settings.preferences.language == "es"}>Spanish</option>
+                        <option value="fr" selected={@settings.preferences.language == "fr"}>French</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                      <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                        <option value="UTC" selected={@settings.preferences.timezone == "UTC"}>UTC</option>
+                        <option value="EST" selected={@settings.preferences.timezone == "EST"}>Eastern Time</option>
+                        <option value="PST" selected={@settings.preferences.timezone == "PST"}>Pacific Time</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Default Session Duration</label>
+                      <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                        <option value="30" selected={@settings.preferences.default_session_duration == 30}>30 minutes</option>
+                        <option value="60" selected={@settings.preferences.default_session_duration == 60}>1 hour</option>
+                        <option value="90" selected={@settings.preferences.default_session_duration == 90}>1.5 hours</option>
+                        <option value="120" selected={@settings.preferences.default_session_duration == 120}>2 hours</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="mt-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Accessibility Mode</p>
+                        <p class="text-sm text-gray-500">Enhanced accessibility features</p>
+                      </div>
+                      <button phx-click="update_preference" phx-value-key="accessibility_mode" phx-value-value={!@settings.preferences.accessibility_mode} class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.preferences.accessibility_mode && "bg-emerald-600",
+                        !@settings.preferences.accessibility_mode && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.preferences.accessibility_mode && "translate-x-5",
+                          !@settings.preferences.accessibility_mode && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Auto Save</p>
+                        <p class="text-sm text-gray-500">Automatically save your work</p>
+                      </div>
+                      <button phx-click="update_preference" phx-value-key="auto_save" phx-value-value={!@settings.preferences.auto_save} class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.preferences.auto_save && "bg-emerald-600",
+                        !@settings.preferences.auto_save && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.preferences.auto_save && "translate-x-5",
+                          !@settings.preferences.auto_save && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Privacy -->
+                <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Privacy</h3>
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">Profile Visibility</label>
+                      <select class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md">
+                        <option value="public" selected={@settings.privacy.profile_visibility == "public"}>Public</option>
+                        <option value="students" selected={@settings.privacy.profile_visibility == "students"}>Students Only</option>
+                        <option value="private" selected={@settings.privacy.profile_visibility == "private"}>Private</option>
+                      </select>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Show Contact Information</p>
+                        <p class="text-sm text-gray-500">Display your contact details to students</p>
+                      </div>
+                      <button phx-click="update_preference" phx-value-key="show_contact_info" phx-value-value={!@settings.privacy.show_contact_info} class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.privacy.show_contact_info && "bg-emerald-600",
+                        !@settings.privacy.show_contact_info && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.privacy.show_contact_info && "translate-x-5",
+                          !@settings.privacy.show_contact_info && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">Allow Student Messages</p>
+                        <p class="text-sm text-gray-500">Let students send you direct messages</p>
+                      </div>
+                      <button phx-click="update_preference" phx-value-key="allow_student_messages" phx-value-value={!@settings.privacy.allow_student_messages} class={[
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+                        @settings.privacy.allow_student_messages && "bg-emerald-600",
+                        !@settings.privacy.allow_student_messages && "bg-gray-200"
+                      ]}>
+                        <span class={[
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          @settings.privacy.allow_student_messages && "translate-x-5",
+                          !@settings.privacy.allow_student_messages && "translate-x-0"
+                        ]}></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile View Modal -->
+<%= if @show_profile_view do %>
+  <.live_component module={SigneaseWeb.Lecturer.Settings.Components.ProfileViewComponent} 
+                   id="profile-view" 
+                   current_user={@current_user} />
+<% end %>
+
+<!-- Profile Modal -->
+<%= if @show_profile_modal do %>
+  <.live_component module={SigneaseWeb.Lecturer.Settings.Components.ProfileModalComponent} 
+                   id="profile-modal" 
+                   current_user={@current_user} />
+<% end %>
