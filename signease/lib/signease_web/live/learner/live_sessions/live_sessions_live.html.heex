@@ -4,7 +4,12 @@
 
   <div class="flex h-screen">
     <!-- Side Navigation -->
-    <.live_component module={SigneaseWeb.Learner.Components.SideNavComponent} id="side-nav" current_page={@current_page} stats={%{speech_transcriptions: @session_stats.words_transcribed, chat_messages_sent: @session_stats.questions_asked}} current_user={@current_user} />
+    <.live_component module={SigneaseWeb.Learner.Components.SideNavComponent} 
+      id="side-nav" 
+      current_page={@current_page} 
+      stats={%{speech_transcriptions: @session_stats.words_transcribed, chat_messages_sent: @session_stats.questions_asked}}
+      current_user={@current_user} 
+    />
     
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col">
@@ -253,6 +258,7 @@
             <!-- Transcription Content -->
             <div class="flex-1 p-6 overflow-hidden">
               <!-- Current Transcription -->
+            <%!-- <%= if @is_recording do %> --%>
               <div class="mb-6">
                 <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
                   <div class="flex items-start space-x-3">
@@ -266,7 +272,8 @@
                     <div class="flex-1">
                       <div class="flex items-center space-x-2 mb-1">
                         <span class="text-sm font-medium text-indigo-700">
-                          <%= if @current_speaker != " " do %>
+
+                          <%= if @current_speaker != " " and @is_recording do %>
                             <%= @current_speaker %>
                           <% else %>
                             Instructor
@@ -300,7 +307,7 @@
                   </div>
                 </div>
               </div>
-
+            <%!-- <% end %> --%>
               <!-- Transcription History -->
               <div class="space-y-3 max-h-96 overflow-y-auto">
                 <%= for line <- @transcribed_lines do %>

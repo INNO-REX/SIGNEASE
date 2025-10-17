@@ -55,6 +55,7 @@ defmodule Signease.MixProject do
       {:nx, "~> 0.6.0"},
       {:exla, "~> 0.6.0"},
       {:kino, "~> 0.11.0", only: [:dev]},
+      {:req, "~> 0.5.0"},
     ]
   end
 

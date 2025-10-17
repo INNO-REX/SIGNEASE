@@ -311,6 +311,8 @@ function setupRealTimeTranscription() {
     if (currentTranscriptionEl) {
       currentTranscriptionEl.textContent = text;
       currentTranscriptionEl.style.opacity = "0.7"; // Make it slightly transparent to show it's interim
+      // Add CSS classes for better text wrapping
+      currentTranscriptionEl.classList.add("leading-relaxed", "break-words", "whitespace-pre-wrap");
     }
   });
 
@@ -337,14 +339,26 @@ function addTranscriptionToHistory(transcription) {
   const timestamp = new Date(transcription.timestamp).toLocaleTimeString();
   const confidence = Math.round(transcription.confidence * 100);
   
+  // Check if grammar correction is available
+  const hasGrammarCorrection = transcription.corrected && transcription.corrected !== transcription.text;
+  const grammarConfidence = transcription.grammar_confidence ? Math.round(transcription.grammar_confidence * 100) : null;
+  
   transcriptionItem.innerHTML = `
     <div class="flex justify-between items-start">
       <div class="flex-1">
-        <p class="text-gray-800">${transcription.text}</p>
+        <p class="text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${transcription.text}</p>
+        ${hasGrammarCorrection ? `
+          <div class="mt-2 p-2 bg-green-50 border-l-4 border-green-400 rounded">
+            <p class="text-sm text-green-800 font-medium">Grammar Corrected:</p>
+            <p class="text-green-700 leading-relaxed break-words whitespace-pre-wrap">${transcription.corrected}</p>
+            ${grammarConfidence ? `<span class="text-xs text-green-600">${grammarConfidence}% grammar confidence</span>` : ''}
+          </div>
+        ` : ''}
         <div class="text-sm text-gray-500 mt-1">
           <span>${transcription.speaker}</span> • 
           <span>${timestamp}</span> • 
           <span>${confidence}% confidence</span>
+          ${grammarConfidence && !hasGrammarCorrection ? ` • ${grammarConfidence}% grammar` : ''}
         </div>
       </div>
     </div>

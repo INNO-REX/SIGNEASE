@@ -1,12 +1,13 @@
 defmodule WhisperElixir do
   @moduledoc """
-  A simple Whisper implementation using Bumblebee for speech-to-text transcription.
+  A  Whisper implementation using Bumblebee for speech-to-text transcription
+  with integrated Ollama grammar checking.
   """
 
 
 
   @doc """
-  Transcribe an audio file to text.
+  Transcribe an audio file to text with optional grammar checking.
 
   ## Parameters
   - `audio_path`: Path to the audio file (supports WAV, MP3, etc.)
@@ -14,12 +15,13 @@ defmodule WhisperElixir do
     - `:language`: Language code (e.g., "en", "es", "fr") - auto-detect if not specified
     - `:task`: :transcribe (default) or :translate (translate to English)
     - `:timestamps`: true/false - include word-level timestamps
+    - `:grammar_check`: true/false - enable Ollama grammar checking (default: true)
 
   ## Examples
       iex> WhisperElixir.transcribe("path/to/audio.wav")
-      {:ok, %{text: "Hello world", chunks: [...]}}
+      {:ok, %{text: "Hello world", corrected: "Hello world", chunks: [...]}}
 
-      iex> WhisperElixir.transcribe("path/to/audio.wav", language: "es", timestamps: true)
+      iex> WhisperElixir.transcribe("path/to/audio.wav", language: "es", grammar_check: false)
       {:ok, %{text: "Hola mundo", chunks: [%{text: "Hola", start_timestamp_seconds: 0.0, end_timestamp_seconds: 0.5}, ...]}}
   """
   def transcribe(audio_path, options \\ []) do
@@ -61,7 +63,15 @@ defmodule WhisperElixir do
       # Format result
       formatted_result = format_result(result, options)
 
-      {:ok, formatted_result}
+      # Apply grammar checking if enabled
+      final_result = if Keyword.get(options, :grammar_check, true) do
+        apply_grammar_check(formatted_result, options)
+      else
+        apply_grammar_check(formatted_result, options)
+
+      end
+
+      {:ok, final_result}
     rescue
       error ->
         IO.inspect(error, label: "Transcription error")
@@ -116,7 +126,14 @@ defmodule WhisperElixir do
       # Format result
       formatted_result = format_result(result, options)
 
-      {:ok, formatted_result}
+      # Apply grammar checking if enabled
+      final_result = if Keyword.get(options, :grammar_check, true) do
+        apply_grammar_check(formatted_result, options)
+      else
+        formatted_result
+      end
+
+      {:ok, final_result}
     rescue
       error ->
         IO.inspect(error, label: "Transcription error")
@@ -324,5 +341,21 @@ defmodule WhisperElixir do
       language: Map.get(result, :language, "unknown"),
       chunks: Map.get(result, :chunks, [])
     }
+  end
+
+  defp apply_grammar_check(formatted_result, options) do
+    case Signease.GrammarChecker.check_grammar(formatted_result.text, options) do
+      {:ok, grammar_result} ->
+        Map.merge(formatted_result, %{
+          corrected: grammar_result.corrected,
+          grammar_confidence: grammar_result.confidence,
+          grammar_changes: grammar_result.changes
+        })
+
+      {:error, reason} ->
+        IO.puts("⚠️ Grammar check failed: #{reason}")
+        # Return original result if grammar check fails
+        Map.put(formatted_result, :corrected, formatted_result.text)
+    end
   end
 end

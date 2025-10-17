@@ -1,44 +1,50 @@
 defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
   use SigneaseWeb, :live_view
+
   alias SigneaseWeb.RouteHelpers
   alias Signease.Accounts
   alias WhisperElixir
 
   @impl true
-  def mount(_params, _session, socket) do
-    # Get current user from session or assign a mock user for development
-    current_user = get_current_user()
-    IO.inspect(socket, label: "socket")
+  def mount(params, session, socket) do
+    # Get current user from session
+    user = get_current_user()
 
-    socket = assign(socket,
-      current_user: current_user,
-      current_page: "learner_live_sessions",
-      is_recording: false,
-      transcription_text: "",
-      transcribed_lines: [],
-      session_active: false,
-      current_speaker: " ",
-      class_questions: [],
-      animation_enabled: false,
-      accessibility_settings: %{
-        high_contrast: false,
-        large_text: false,
-        screen_reader: false
-      },
-      session_stats: %{
-        words_transcribed: 0,
-        accuracy: 9.5,
-        session_duration: 0,
-        questions_asked: 0
-      },
-      # New assigns for audio handling
-      audio_chunks: [],
-      session_timer_ref: nil,
-      transcription_processing: false
-    )
+    # Check if user exists and has learner permissions
 
-    {:ok, socket}
-  end
+          socket = assign(socket,
+            current_user: user,
+            current_page: "learner_live_sessions",
+            is_recording: false,
+            transcription_text: "",
+            transcribed_lines: [],
+            session_active: false,
+            current_speaker: " ",
+            session_committed: false,
+            current_session_text: "", # Track accumulated text during recording session
+            class_questions: [],
+            animation_enabled: false,
+            accessibility_settings: %{
+              high_contrast: false,
+              large_text: false,
+              screen_reader: false
+            },
+            session_stats: %{
+              words_transcribed: 0,
+              accuracy: 9.5,
+              session_duration: 0,
+              questions_asked: 0
+            },
+            # New assigns for audio handling
+            audio_chunks: [],
+            session_timer_ref: nil,
+            transcription_processing: false
+          )
+
+          {:ok, socket}
+
+    end
+  
 
   @impl true
   def handle_event("toggle-recording", _params, socket) do
@@ -46,7 +52,7 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
     user = socket.assigns.current_user
 
     current_speaker =
-      if user.user_type == "LEARNER" do
+      if user.user_type == "LEARNER" and is_recording do
         "#{user.first_name} #{user.last_name}"
       else
         "Instructor"
@@ -61,17 +67,53 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
         session_active: true,
         current_speaker: current_speaker,
         audio_chunks: [],
-        transcription_processing: false
+        transcription_processing: false,
+        session_committed: false,
+        current_session_text: "" # Reset session text
       })
       |> push_event("start-recording", %{})
       |> start_session_timer()
     else
-      # Stop recording and process audio
+      # Stop recording and create history item
       IO.puts("🛑 Stopping recording")
-      socket
-      |> assign(is_recording: false)
-      |> push_event("stop-recording", %{})
-      |> stop_session_timer()
+
+      # Create history item from accumulated session text
+      session_text = socket.assigns.current_session_text || ""
+      IO.puts("🛑 Session text when stopping: '#{session_text}'")
+
+      socket = if session_text != "" do
+        # Create new transcribed line from accumulated session text
+        new_line = %{
+          id: System.unique_integer([:positive]),
+          text: session_text,
+          timestamp: DateTime.utc_now(),
+          speaker: socket.assigns.current_speaker,
+          language: "en", # Default language
+          confidence: 0.95 # Default confidence
+        }
+
+        lines = [new_line | socket.assigns.transcribed_lines]
+        words_count = socket.assigns.session_stats.words_transcribed + (String.split(session_text, " ") |> length())
+
+        socket
+        |> assign(%{
+          is_recording: false,
+          transcribed_lines: lines,
+          current_session_text: "", # Clear session text
+          session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
+        })
+        |> push_event("transcription-update", %{transcription: new_line})
+        |> push_event("stop-recording", %{})
+        |> stop_session_timer()
+      else
+        socket
+        |> assign(%{
+          is_recording: false,
+          current_session_text: "" # Clear session text
+        })
+        |> push_event("stop-recording", %{})
+        |> stop_session_timer()
+      end
     end
 
     {:noreply, socket}
@@ -136,29 +178,76 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
   def handle_event("final-transcription", %{"text" => text, "confidence" => confidence, "language" => language}, socket) do
     IO.puts("🎉 Final transcription from browser: #{text}")
 
-    # Create new transcribed line
-    new_line = %{
-      id: System.unique_integer([:positive]),
-      text: text,
-      timestamp: DateTime.utc_now(),
-      speaker: socket.assigns.current_speaker,
-      language: language,
-      confidence: confidence
-    }
+    # Accumulate text in current session instead of creating new lines
+    current_session_text = socket.assigns.current_session_text || ""
+    new_session_text = if current_session_text == "" do
+      text
+    else
+      current_session_text <> " " <> text
+    end
 
-    lines = [new_line | socket.assigns.transcribed_lines]
-    words_count = socket.assigns.session_stats.words_transcribed + (String.split(text, " ") |> length())
+    IO.puts("📝 Accumulating text: '#{text}' -> Total: '#{new_session_text}'")
 
+    # If recording already stopped, immediately persist one history item
     socket =
-      socket
-      |> assign(%{
-        transcription_text: "", # Clear interim text
-        transcribed_lines: lines,
-        transcription_processing: false,
-        session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
-      })
-      |> push_event("transcription-update", %{transcription: new_line})
-      |> push_event("clear-current-transcription", %{}) # Clear the interim display
+      if socket.assigns.is_recording do
+        # Still recording: keep accumulating only
+        socket
+        |> assign(%{
+          transcription_text: "",
+          current_session_text: new_session_text,
+          transcription_processing: false
+        })
+        |> push_event("clear-current-transcription", %{})
+      else
+        # Recording stopped: only persist once per session
+        if socket.assigns.session_committed do
+          socket
+          |> assign(%{
+            transcription_text: "",
+            current_session_text: new_session_text,
+            transcription_processing: false
+          })
+          |> push_event("clear-current-transcription", %{})
+        else
+          # First final after stop: write the accumulated text now
+        session_text = String.trim(new_session_text)
+
+        if session_text == "" do
+          socket
+          |> assign(%{
+            transcription_text: "",
+            current_session_text: "",
+            transcription_processing: false
+          })
+          |> push_event("clear-current-transcription", %{})
+        else
+          new_line = %{
+            id: System.unique_integer([:positive]),
+            text: session_text,
+            timestamp: DateTime.utc_now(),
+            speaker: socket.assigns.current_speaker,
+            language: language,
+            confidence: confidence
+          }
+
+          lines = [new_line | socket.assigns.transcribed_lines]
+          words_count = socket.assigns.session_stats.words_transcribed + (String.split(session_text, " ") |> length())
+
+          socket
+          |> assign(%{
+            transcription_text: "",
+            current_session_text: "",
+            transcribed_lines: lines,
+              session_committed: true,
+            transcription_processing: false,
+            session_stats: Map.put(socket.assigns.session_stats, :words_transcribed, words_count)
+          })
+          |> push_event("transcription-update", %{transcription: new_line})
+          |> push_event("clear-current-transcription", %{})
+        end
+        end
+      end
 
     # Update animation if enabled
     if socket.assigns.animation_enabled do
@@ -352,7 +441,6 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
 
   # ============================================================================
   # PRIVATE FUNCTIONS
-  # ============================================================================
 
   defp get_current_user do
     # Mock user for development - replace with actual user from session
@@ -366,6 +454,7 @@ defmodule SigneaseWeb.Learner.LiveSessions.LiveSessionsLive do
       hearing_status: "DEAF"
     }
   end
+  # ============================================================================
 
   defp start_session_timer(socket) do
     # Start session duration timer
