@@ -7,15 +7,21 @@ let recordingState = false;
 
 // Initialize live sessions functionality
 document.addEventListener('DOMContentLoaded', function() {
-  initializeLiveSessions();
+  // Small delay to ensure LiveView is fully initialized
+  setTimeout(initializeLiveSessions, 100);
 });
 
 // Initialize all live sessions features
 function initializeLiveSessions() {
-  setupRecordingSimulation();
-  setupTranscriptionUpdates();
-  setupAccessibilityFeatures();
-  setupAnimationControls();
+  // Only initialize if we're on the live sessions page and not already initialized
+  if (document.querySelector('[phx-click="toggle-recording"]') && !window.liveSessionsInitialized) {
+    setupRecordingSimulation();
+    setupTranscriptionUpdates();
+    setupAccessibilityFeatures();
+    setupAnimationControls();
+    setupRealTimeTranscription();
+    window.liveSessionsInitialized = true;
+  }
 }
 
 // Setup recording simulation
@@ -27,9 +33,11 @@ function setupRecordingSimulation() {
       recordingState = !recordingState;
       
       if (recordingState) {
-        startRecordingSimulation();
+        console.log("Recording state:", recordingState);
+        // startRecordingSimulation();
       } else {
-        stopRecordingSimulation();
+        console.log("Recording state:", recordingState);
+        // stopRecordingSimulation();
       }
     });
   }
@@ -46,7 +54,7 @@ function startRecordingSimulation() {
   }
   
   // Start transcription simulation
-  startTranscriptionSimulation();
+  // startTranscriptionSimulation();
 }
 
 // Stop recording simulation
@@ -60,7 +68,7 @@ function stopRecordingSimulation() {
   }
   
   // Stop transcription simulation
-  stopTranscriptionSimulation();
+  // stopTranscriptionSimulation();
 }
 
 // Setup transcription updates
@@ -111,19 +119,23 @@ function stopTranscriptionSimulation() {
 
 // Update transcription text
 function updateTranscriptionText(text) {
-  // Find the transcription display element
-  const transcriptionDisplay = document.querySelector('.transcription-current');
-  
-  if (transcriptionDisplay) {
-    // Add typing effect
-    typeText(transcriptionDisplay, text);
-  }
-  
-  // Send to LiveView
-  if (window.liveSocket) {
-    window.liveSocket.execJS(document, "update-transcription", {text: text});
+  // Find the transcription text element using the specific ID
+  const el = document.getElementById("current-transcription");
+
+  if (el instanceof HTMLElement) {
+    // Update the text content, preserving any existing structure
+    if (text && text.trim() !== "") {
+      el.textContent = text;
+    } else {
+      el.innerHTML = '<span class="text-gray-400 italic">Waiting for speech input...</span>';
+    }
+    console.log("Transcription updated:", text);
+  } else {
+    console.warn("Transcription element not found:", el);
   }
 }
+
+
 
 // Type text effect
 function typeText(element, text) {
@@ -250,6 +262,12 @@ function stopSignLanguageAnimation() {
 
 // Handle LiveView events
 document.addEventListener('phx:update', function() {
+  // Initialize if not already done (for LiveView navigation)
+  if (!window.liveSessionsInitialized) {
+    initializeLiveSessions();
+    window.liveSessionsInitialized = true;
+  }
+  
   // Update recording state based on LiveView
   const recordButton = document.querySelector('[phx-click="toggle-recording"]');
   if (recordButton) {
@@ -258,18 +276,125 @@ document.addEventListener('phx:update', function() {
       recordingState = isRecording;
       
       if (recordingState) {
-        startRecordingSimulation();
+
+        console.log("Recording state:", recordingState);
+        // startRecordingSimulation();
       } else {
-        stopRecordingSimulation();
+        console.log("Recording state:", recordingState);
+        // stopRecordingSimulation();
       }
     }
   }
 });
 
+// Setup real-time transcription handling
+function setupRealTimeTranscription() {
+  // Handle transcription updates from LiveView
+  window.addEventListener("transcription-update", (event) => {
+    const transcription = event.detail.transcription;
+    console.log("Transcription update received:", transcription);
+    
+    // Add to transcription history
+    addTranscriptionToHistory(transcription);
+    
+    // Update statistics
+    updateTranscriptionStats();
+  });
+
+  // Handle real-time transcription updates
+  window.addEventListener("update-current-transcription", (event) => {
+    const text = event.detail.text;
+    console.log("Real-time transcription:", text);
+    
+    // Update the current transcription display
+    const currentTranscriptionEl = document.getElementById("current-transcription");
+    if (currentTranscriptionEl) {
+      currentTranscriptionEl.textContent = text;
+      currentTranscriptionEl.style.opacity = "0.7"; // Make it slightly transparent to show it's interim
+      // Add CSS classes for better text wrapping
+      currentTranscriptionEl.classList.add("leading-relaxed", "break-words", "whitespace-pre-wrap");
+    }
+  });
+
+  // Handle clearing current transcription
+  window.addEventListener("clear-current-transcription", (event) => {
+    console.log("Clearing current transcription");
+    
+    const currentTranscriptionEl = document.getElementById("current-transcription");
+    if (currentTranscriptionEl) {
+      currentTranscriptionEl.textContent = "";
+      currentTranscriptionEl.style.opacity = "1";
+    }
+  });
+}
+
+// Add transcription to history
+function addTranscriptionToHistory(transcription) {
+  const historyContainer = document.getElementById("transcription-history");
+  if (!historyContainer) return;
+
+  const transcriptionItem = document.createElement("div");
+  transcriptionItem.className = "transcription-item p-3 border-b border-gray-200";
+  
+  const timestamp = new Date(transcription.timestamp).toLocaleTimeString();
+  const confidence = Math.round(transcription.confidence * 100);
+  
+  // Check if grammar correction is available
+  const hasGrammarCorrection = transcription.corrected && transcription.corrected !== transcription.text;
+  const grammarConfidence = transcription.grammar_confidence ? Math.round(transcription.grammar_confidence * 100) : null;
+  
+  transcriptionItem.innerHTML = `
+    <div class="flex justify-between items-start">
+      <div class="flex-1">
+        <p class="text-gray-800 leading-relaxed break-words whitespace-pre-wrap">${transcription.text}</p>
+        ${hasGrammarCorrection ? `
+          <div class="mt-2 p-2 bg-green-50 border-l-4 border-green-400 rounded">
+            <p class="text-sm text-green-800 font-medium">Grammar Corrected:</p>
+            <p class="text-green-700 leading-relaxed break-words whitespace-pre-wrap">${transcription.corrected}</p>
+            ${grammarConfidence ? `<span class="text-xs text-green-600">${grammarConfidence}% grammar confidence</span>` : ''}
+          </div>
+        ` : ''}
+        <div class="text-sm text-gray-500 mt-1">
+          <span>${transcription.speaker}</span> • 
+          <span>${timestamp}</span> • 
+          <span>${confidence}% confidence</span>
+          ${grammarConfidence && !hasGrammarCorrection ? ` • ${grammarConfidence}% grammar` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add to top of history
+  historyContainer.insertBefore(transcriptionItem, historyContainer.firstChild);
+}
+
+// Update transcription statistics
+function updateTranscriptionStats() {
+  const historyContainer = document.getElementById("transcription-history");
+  if (!historyContainer) return;
+  
+  const items = historyContainer.querySelectorAll(".transcription-item");
+  const wordCountEl = document.getElementById("words-transcribed");
+  const sessionCountEl = document.getElementById("session-count");
+  
+  if (wordCountEl) {
+    let totalWords = 0;
+    items.forEach(item => {
+      const text = item.querySelector("p").textContent;
+      totalWords += text.split(" ").length;
+    });
+    wordCountEl.textContent = totalWords;
+  }
+  
+  if (sessionCountEl) {
+    sessionCountEl.textContent = items.length;
+  }
+}
+
 // Export functions for global access
-window.LiveSessions = {
-  startRecording: startRecordingSimulation,
-  stopRecording: stopRecordingSimulation,
-  toggleAnimation: toggleSignLanguageAnimation,
-  applyAccessibility: applyAccessibilitySetting
-}; 
+// window.LiveSessions = {
+//   startRecording: startRecordingSimulation,
+//   stopRecording: stopRecordingSimulation,
+//   toggleAnimation: toggleSignLanguageAnimation,
+//   applyAccessibility: applyAccessibilitySetting
+// }; 

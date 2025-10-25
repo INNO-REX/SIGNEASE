@@ -28,15 +28,20 @@ import ApexCharts from "apexcharts"
 // Import Chart Hooks
 import ChartHooks from "./chart_hooks.js"
 import LoaderHooks from "./loader_hooks.js"
+// Import LiveSessions functionality
+import "./live_sessions.js"
 import LiveSessions from "./live_sessions.js"
 import FlashHooks from "./flash_hooks.js"
+// microphone
+import {AudioRecorder} from "./audio_recorder.js"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let Hooks = {
+
+  let Hooks = {
   ...ChartHooks,
   ...LoaderHooks,
   ...FlashHooks,
-  
+  AudioRecorder: AudioRecorder,
   // Side Navigation Dropdown Hook
   SideNavDropdown: {
     mounted() {
@@ -52,7 +57,9 @@ let Hooks = {
       
       this.handleDropdownAnimation();
     }
-  }
+  },
+
+
 }
 
 let liveSocket = new LiveSocket("/live", Socket, {

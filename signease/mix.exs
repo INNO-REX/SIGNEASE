@@ -5,7 +5,7 @@ defmodule Signease.MixProject do
     [
       app: :signease,
       version: "0.1.0",
-      elixir: "~> 1.15.7-otp-25",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -50,7 +50,12 @@ defmodule Signease.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:bumblebee, "~> 0.4.0"},
+      {:nx, "~> 0.6.0"},
+      {:exla, "~> 0.6.0"},
+      {:kino, "~> 0.11.0", only: [:dev]},
+      {:req, "~> 0.5.0"},
     ]
   end
 
